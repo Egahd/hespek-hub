@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a2a18">
+<title>Hespek Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g900:#0a2a18;--g800:#0d3320;--g700:#145228;--g600:#1a6b32;
+  --g500:#22883f;--g400:#34a854;--g300:#6fcf88;--g100:#d4f4dd;--g50:#edfbf1;
+  --amber:#f59e0b;--amber-l:#fef3c7;--amber-d:#92400e;
+  --red:#dc2626;--red-l:#fee2e2;--red-d:#7f1d1d;
+  --blue:#1d4ed8;--blue-l:#eff6ff;--blue-d:#1e3a8a;
+  --ink:#111827;--muted:#6b7280;--border:#e5e7eb;--surf:#f9fafb;--white:#fff;
+  --r:14px;--rs:8px;--sh:0 2px 12px rgba(0,0,0,.08);--shl:0 8px 32px rgba(0,0,0,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--g900);color:#fff;min-height:100vh;overflow-x:hidden;padding-bottom:80px}
+
+/* ─ HEADER */
+.hdr{background:var(--g800);padding:12px 16px 10px;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,.07)}
+.hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1px}
+.brand{font-family:'Space Mono',monospace;font-size:11px;color:var(--g300);letter-spacing:.09em}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.hdr-date{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);transition:background .3s;cursor:pointer}
+.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite}
+.sync-dot.synced{background:var(--g400)}
+.sync-dot.error{background:var(--red)}
+.hdr-title{font-size:18px;font-weight:600}
+/* staff badge in header */
+.staff-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(52,168,84,.15);border:1px solid rgba(52,168,84,.3);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:500;color:var(--g300);cursor:pointer}
+.staff-dot{width:7px;height:7px;border-radius:50%;background:var(--g400)}
+
+/* ─ BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--g800);border-top:1px solid rgba(255,255,255,.08);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 7px;border:none;background:transparent;color:rgba(255,255,255,.38);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;cursor:pointer;transition:color .15s}
+.bnav-btn .icon{font-size:19px;line-height:1}
+.bnav-btn.active{color:var(--g300)}
+.bnav-btn:active{transform:scale(.93)}
+.bnav-btn.locked{color:rgba(255,255,255,.2)}
+.bnav-btn.locked .icon::after{content:'🔒';font-size:9px;position:relative;top:-4px}
+
+/* ─ MAIN */
+.main{padding:14px}
+.page{display:none}.page.active{display:block}
+.slabel{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--g300);text-transform:uppercase;margin:18px 0 9px}
+.slabel:first-child{margin-top:0}
+
+/* ─ CARDS */
+.card{background:var(--white);border-radius:var(--r);padding:14px;margin-bottom:11px;box-shadow:var(--sh);color:var(--ink)}
+
+/* ─ STAT GRID */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.sc{background:var(--g800);border:1px solid rgba(255,255,255,.09);border-radius:var(--r);padding:13px;text-align:center}
+.sv{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--g300);line-height:1}
+.sl{font-size:10px;color:rgba(255,255,255,.42);margin-top:5px;text-transform:uppercase;letter-spacing:.05em}
+.sc.warn .sv{color:var(--amber)}.sc.danger .sv{color:#f87171}
+
+/* ─ SHIFT BAR */
+.sbar{display:flex;align-items:center;gap:9px;background:var(--g800);border:1px solid rgba(255,255,255,.09);border-radius:var(--r);padding:11px 13px;margin-bottom:11px}
+.sind{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.sind.on{background:var(--g400);box-shadow:0 0 7px var(--g400);animation:pulse 2s infinite}
+.sind.off{background:var(--muted)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.stext{flex:1;font-size:13px;font-weight:500;color:rgba(255,255,255,.8)}
+.stime{font-family:'Space Mono',monospace;font-size:12px;color:var(--g300)}
+
+/* ─ FORMS */
+.fg{margin-bottom:11px}
+.fl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;display:block}
+.fi,.fs{width:100%;padding:12px 13px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--ink);background:var(--white);-webkit-appearance:none;transition:border-color .15s}
+.fi:focus,.fs:focus{outline:none;border-color:var(--g500);box-shadow:0 0 0 3px rgba(52,168,84,.12)}
+.fi.mono{font-family:'Space Mono',monospace;letter-spacing:.04em}
+.fi-price{font-size:22px;font-weight:700;font-family:'Space Mono',monospace;text-align:center}
+
+/* ─ BUTTONS */
+.btn{display:block;width:100%;padding:14px;border-radius:var(--r);border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center}
+.btn:active{transform:scale(.98)}
+.btn-p{background:var(--g400);color:#fff}.btn-p:active{background:var(--g500)}
+.btn-r{background:var(--red);color:#fff}
+.btn-a{background:var(--amber);color:var(--ink)}
+.btn-o{background:transparent;color:var(--g300);border:1.5px solid var(--g700);margin-top:8px}
+.btn-wa{background:#25D366;color:#fff}
+.btn-sm{display:inline-block;width:auto;padding:8px 14px;font-size:13px;border-radius:20px}
+.btn-lock{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1);cursor:not-allowed}
+
+/* ─ ALERTS */
+.alert{border-radius:var(--rs);padding:10px 12px;font-size:13px;line-height:1.5;margin-bottom:10px;border-left:3px solid}
+.alert-r{background:var(--red-l);color:var(--red-d);border-color:var(--red)}
+.alert-a{background:var(--amber-l);color:var(--amber-d);border-color:var(--amber)}
+.alert-g{background:var(--g50);color:var(--g700);border-color:var(--g400)}
+.alert-b{background:var(--blue-l);color:var(--blue-d);border-color:var(--blue)}
+.alert strong{font-weight:700}
+
+/* ─ BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.bg{background:var(--g100);color:var(--g700)}
+.ba{background:var(--amber-l);color:var(--amber-d)}
+.br{background:var(--red-l);color:var(--red-d)}
+.bb{background:var(--blue-l);color:var(--blue-d)}
+.bm{background:#f3e8ff;color:#6b21a8}
+
+/* ─ CHECKLIST */
+.cl{list-style:none}
+.ci{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.ci:last-child{border-bottom:none;padding-bottom:2px}
+.ci.ck{opacity:.5}
+.cb{width:22px;height:22px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .15s;background:#fff}
+.ci.ck .cb{background:var(--g500);border-color:var(--g500)}
+.ctick{display:none;color:#fff;font-size:12px;font-weight:700}
+.ci.ck .ctick{display:block}
+.ct{flex:1}.cm{font-size:14px;font-weight:500;color:var(--ink);line-height:1.4}
+.ci.ck .cm{text-decoration:line-through;color:var(--muted)}
+.cn{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4}
+
+/* ─ SLOT GRID */
+.slot-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-bottom:12px}
+.slot{aspect-ratio:1;border-radius:5px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;background:var(--white);color:var(--ink)}
+.slot:active{transform:scale(.88)}
+.slot.available{border-color:var(--g400);background:var(--g50);color:var(--g700)}
+.slot.out{background:var(--amber-l);border-color:var(--amber);color:var(--amber-d);cursor:default}
+.slot.returned{background:var(--blue-l);border-color:var(--blue);color:var(--blue-d);cursor:default}
+.slot.cooldown{background:#f3e8ff;border-color:#a855f7;color:#6b21a8;cursor:default}
+.slot.selected{background:var(--g500);border-color:var(--g500);color:#fff;transform:scale(1.12);box-shadow:0 2px 8px rgba(52,168,84,.4);z-index:1}
+.slot-legend{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
+.sli{display:flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,.55)}
+.sld{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+
+/* ─ PIN PAD */
+.pin-overlay{display:none;position:fixed;inset:0;background:rgba(10,42,24,.97);z-index:500;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.pin-overlay.open{display:flex}
+.pin-title{font-size:18px;font-weight:600;margin-bottom:6px;text-align:center}
+.pin-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:28px;text-align:center}
+.pin-dots{display:flex;gap:14px;margin-bottom:32px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);transition:all .15s}
+.pin-dot.filled{background:var(--g400);border-color:var(--g400)}
+.pin-dot.error{background:var(--red);border-color:var(--red)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:280px}
+.pin-key{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px;font-size:22px;font-weight:600;color:#fff;cursor:pointer;text-align:center;transition:all .15s;font-family:'Space Mono',monospace}
+.pin-key:active{background:var(--g600);transform:scale(.94)}
+.pin-key.del{font-size:18px;color:rgba(255,255,255,.6)}
+.pin-key.empty{background:transparent;border:none;cursor:default}
+.pin-cancel{margin-top:20px;background:transparent;border:none;color:rgba(255,255,255,.4);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:8px 20px}
+
+/* ─ STAFF SELECTOR */
+.staff-overlay{display:none;position:fixed;inset:0;background:rgba(10,42,24,.97);z-index:500;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 20px}
+.staff-overlay.open{display:flex}
+.staff-list{width:100%;max-width:360px;margin-top:16px}
+.staff-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px}
+.staff-item:active{background:var(--g700);transform:scale(.98)}
+.staff-avatar{width:40px;height:40px;border-radius:50%;background:var(--g600);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--g300);flex-shrink:0;font-family:'Space Mono',monospace}
+.staff-name{font-size:15px;font-weight:600;color:#fff}
+.staff-role{font-size:12px;color:rgba(255,255,255,.45);margin-top:1px}
+
+/* ─ PRICE CARD */
+.price-display{background:var(--g800);border:1px solid rgba(255,255,255,.1);border-radius:var(--r);padding:16px;margin-bottom:11px;text-align:center}
+.price-label{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.price-value{font-family:'Space Mono',monospace;font-size:32px;font-weight:700;color:var(--g300)}
+.price-sub{font-size:12px;color:rgba(255,255,255,.4);margin-top:4px}
+
+/* ─ SETTINGS SECTIONS */
+.setting-row{padding:12px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:14px;font-weight:500;color:var(--ink)}
+.setting-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.locked-overlay{position:relative}
+.locked-overlay::after{content:'🔒 Admin PIN required';position:absolute;inset:0;background:rgba(249,250,251,.92);border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ─ RENTAL CARDS */
+.rcard{background:var(--white);border-radius:var(--r);padding:12px;margin-bottom:8px;border-left:4px solid var(--g400);color:var(--ink)}
+.rcard.overdue{border-left-color:var(--red)}
+.rcard.returned{border-left-color:var(--blue);opacity:.75}
+.rcard-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px}
+.rcard-name{font-weight:600;font-size:14px}
+.rcard-id{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-top:1px}
+.rcard-meta{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.7}
+.rcard-actions{display:flex;gap:7px}
+.ract{flex:1;padding:8px;border-radius:var(--rs);border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.ract:active{transform:scale(.96)}
+.ret-btn{background:var(--g50);color:var(--g700)}
+.wa-btn{background:#e7faf0;color:#15803d}
+.call-btn{background:var(--blue-l);color:var(--blue-d)}
+
+/* ─ STEP INDICATOR */
+.steps{display:flex;gap:7px;margin-bottom:14px;align-items:center}
+.step-bar{flex:1;height:4px;border-radius:2px;transition:background .3s}
+.step-label{font-size:11px;color:var(--muted);white-space:nowrap;font-family:'Space Mono',monospace}
+
+/* ─ PM SELECTOR */
+.pm-row{display:flex;gap:7px;margin-bottom:12px}
+.pm-btn{flex:1;padding:11px 6px;border-radius:var(--rs);border:1.5px solid rgba(255,255,255,.15);background:var(--g800);color:rgba(255,255,255,.55);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center}
+.pm-btn.sel{background:var(--g400);border-color:var(--g400);color:#fff}
+.pm-btn:active{transform:scale(.95)}
+
+/* ─ SCAN BOX */
+.scan-box{background:var(--g800);border:2px dashed rgba(52,168,84,.4);border-radius:var(--r);padding:18px;text-align:center;margin-bottom:11px;cursor:pointer;transition:border-color .2s}
+.scan-box:active{border-color:var(--g400)}
+
+/* ─ THERMAL GAUGE */
+.tg{background:var(--g800);border:1px solid rgba(255,255,255,.09);border-radius:var(--r);padding:12px;margin-bottom:7px}
+.tg-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tg-name{font-size:13px;color:rgba(255,255,255,.72);font-weight:500}
+.tg-val{font-family:'Space Mono',monospace;font-size:18px;font-weight:700}
+.tg-val.safe{color:var(--g300)}.tg-val.warn{color:var(--amber)}.tg-val.danger{color:#f87171}
+.tg-track{background:rgba(255,255,255,.1);border-radius:3px;height:6px;overflow:hidden}
+.tg-fill{height:100%;border-radius:3px;transition:width .4s,background .4s}
+.tg-hint{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* ─ PROGRESS */
+.pw{margin-bottom:10px}
+.pl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.pt{background:rgba(255,255,255,.1);border-radius:3px;height:5px;overflow:hidden}
+.pf{height:100%;background:var(--g400);border-radius:3px;transition:width .3s}
+.pcount{color:var(--g300);font-weight:600;font-family:'Space Mono',monospace}
+
+/* ─ MODAL */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;align-items:flex-end;backdrop-filter:blur(4px)}
+.mo.open{display:flex}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-height:90vh;overflow-y:auto;color:var(--ink);animation:su .22s ease}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mhandle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.mtitle{font-size:16px;font-weight:700;margin-bottom:13px}
+
+/* ─ SCANNER */
+.scan-overlay{display:none;position:fixed;inset:0;background:#000;z-index:400;flex-direction:column;align-items:center;justify-content:center}
+.scan-overlay.open{display:flex}
+.scan-frame{width:250px;height:250px;border:3px solid var(--g400);border-radius:14px;position:relative;margin-bottom:22px;overflow:hidden}
+.scan-corner{position:absolute;width:22px;height:22px;border-color:var(--g400);border-style:solid}
+.sc-tl{top:-3px;left:-3px;border-width:4px 0 0 4px;border-radius:5px 0 0 0}
+.sc-tr{top:-3px;right:-3px;border-width:4px 4px 0 0;border-radius:0 5px 0 0}
+.sc-bl{bottom:-3px;left:-3px;border-width:0 0 4px 4px;border-radius:0 0 0 5px}
+.sc-br{bottom:-3px;right:-3px;border-width:0 4px 4px 0;border-radius:0 0 5px 0}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:var(--g400);animation:scanline 2s ease-in-out infinite;box-shadow:0 0 8px var(--g400)}
+@keyframes scanline{0%,100%{top:8%}50%{top:86%}}
+video#scanner-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* ─ TOAST */
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--g700);color:#fff;padding:10px 18px;border-radius:22px;font-size:13px;font-weight:500;z-index:600;transition:transform .26s ease;white-space:nowrap;box-shadow:var(--shl);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--red)}
+
+/* ─ LOG TABLE */
+.ltable{width:100%;border-collapse:collapse;font-size:12px;color:var(--ink)}
+.ltable th{text-align:left;padding:7px 8px;background:var(--g800);color:rgba(255,255,255,.55);font-size:10px;letter-spacing:.05em}
+.ltable td{padding:8px;border-bottom:1px solid var(--border);background:#fff;vertical-align:top}
+.ltable tr:last-child td{border-bottom:none}
+.empty{text-align:center;padding:32px 20px;color:rgba(255,255,255,.28)}
+.empty-icon{font-size:32px;margin-bottom:9px}
+
+/* ─ STAFF PILL in rental card */
+.staff-pill{display:inline-flex;align-items:center;gap:4px;background:var(--g50);border:1px solid var(--g100);border-radius:20px;padding:2px 8px;font-size:11px;color:var(--g700);font-weight:500}
+</style>
+</head>
+<body>
+
+<!-- ─ STAFF PIN LOGIN OVERLAY ────────────────────────────────── -->
+<div class="staff-overlay" id="staffOverlay">
+  <div style="text-align:center;margin-bottom:4px">
+    <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--g300);letter-spacing:.09em;margin-bottom:10px">HESPEK ENERGY</div>
+    <div style="font-size:22px;font-weight:700;margin-bottom:4px" id="loginTitle">Who is on duty?</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.45);margin-bottom:18px" id="loginSub">Select your name to enter your PIN</div>
+  </div>
+
+  <!-- Step A: Name selection -->
+  <div id="loginStepA" style="width:100%;max-width:360px">
+    <div id="staffList"></div>
+    <button style="margin-top:12px;background:transparent;border:none;color:rgba(255,255,255,.25);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;display:block;width:100%;text-align:center" onclick="skipStaffSelect()">Continue as guest (no PIN)</button>
+  </div>
+
+  <!-- Step B: PIN entry for selected staff -->
+  <div id="loginStepB" style="display:none;width:100%;max-width:300px;align-items:center;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <div id="loginAvatar" style="width:44px;height:44px;border-radius:50%;background:var(--g600);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--g300);font-family:'Space Mono',monospace"></div>
+      <div>
+        <div style="font-size:16px;font-weight:600" id="loginName"></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4)" id="loginRole"></div>
+      </div>
+    </div>
+    <div class="pin-dots" id="loginDots">
+      <div class="pin-dot" id="ld0"></div>
+      <div class="pin-dot" id="ld1"></div>
+      <div class="pin-dot" id="ld2"></div>
+      <div class="pin-dot" id="ld3"></div>
+    </div>
+    <div class="pin-pad" style="margin-top:0">
+      <button class="pin-key" onclick="loginPinKey('1')">1</button>
+      <button class="pin-key" onclick="loginPinKey('2')">2</button>
+      <button class="pin-key" onclick="loginPinKey('3')">3</button>
+      <button class="pin-key" onclick="loginPinKey('4')">4</button>
+      <button class="pin-key" onclick="loginPinKey('5')">5</button>
+      <button class="pin-key" onclick="loginPinKey('6')">6</button>
+      <button class="pin-key" onclick="loginPinKey('7')">7</button>
+      <button class="pin-key" onclick="loginPinKey('8')">8</button>
+      <button class="pin-key" onclick="loginPinKey('9')">9</button>
+      <button class="pin-key empty"></button>
+      <button class="pin-key" onclick="loginPinKey('0')">0</button>
+      <button class="pin-key del" onclick="loginPinDel()">⌫</button>
+    </div>
+    <button style="margin-top:16px;background:transparent;border:none;color:rgba(255,255,255,.35);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer" onclick="backToNameSelect()">← Back</button>
+  </div>
+</div>
+
+<!-- ─ PIN OVERLAY ─────────────────────────────────────────────── -->
+<div class="pin-overlay" id="pinOverlay">
+  <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--g300);letter-spacing:.09em;margin-bottom:20px">HESPEK ADMIN</div>
+  <div class="pin-title" id="pinTitle">Admin PIN Required</div>
+  <div class="pin-sub" id="pinSub">Enter your 4-digit PIN to continue</div>
+  <div class="pin-dots" id="pinDots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-key" onclick="pinKey('1')">1</button>
+    <button class="pin-key" onclick="pinKey('2')">2</button>
+    <button class="pin-key" onclick="pinKey('3')">3</button>
+    <button class="pin-key" onclick="pinKey('4')">4</button>
+    <button class="pin-key" onclick="pinKey('5')">5</button>
+    <button class="pin-key" onclick="pinKey('6')">6</button>
+    <button class="pin-key" onclick="pinKey('7')">7</button>
+    <button class="pin-key" onclick="pinKey('8')">8</button>
+    <button class="pin-key" onclick="pinKey('9')">9</button>
+    <button class="pin-key empty"></button>
+    <button class="pin-key" onclick="pinKey('0')">0</button>
+    <button class="pin-key del" onclick="pinDel()">⌫</button>
+  </div>
+  <button class="pin-cancel" id="pinCancel" onclick="closePIN()">Cancel</button>
+</div>
+
+<!-- ─ UNIFIED SCANNER — handles NYSC ID and power bank QR ─────── -->
+<div class="scan-overlay" id="scanOverlay">
+  <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--g300);letter-spacing:.09em;margin-bottom:14px">HESPEK SCAN</div>
+  <div style="font-size:16px;font-weight:600;margin-bottom:4px;text-align:center" id="scanTitle">Scanning...</div>
+  <div style="font-size:12px;color:rgba(255,255,255,.45);margin-bottom:18px;text-align:center;max-width:260px" id="scanSub">Hold code steady inside the frame</div>
+  <div class="scan-frame">
+    <video id="scanner-video" autoplay playsinline muted></video>
+    <div class="scan-corner sc-tl"></div><div class="scan-corner sc-tr"></div>
+    <div class="scan-corner sc-bl"></div><div class="scan-corner sc-br"></div>
+    <div class="scan-line"></div>
+  </div>
+  <div id="scanResult" style="min-height:26px;text-align:center;font-size:14px;font-weight:600;color:var(--g300);margin-bottom:14px;font-family:'Space Mono',monospace;transition:opacity .2s"></div>
+  <button style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);padding:11px 22px;border-radius:22px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-bottom:10px" id="scanManualBtn" onclick="closeScannerManual()">Enter manually instead</button>
+  <button style="background:transparent;color:rgba(255,255,255,.45);border:none;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer" onclick="closeScanner(false)">Cancel</button>
+</div>
+
+
+<!-- ─ HEADER ──────────────────────────────────────────────────── -->
+<div class="hdr">
+  <div class="hdr-top">
+    <span class="brand">HESPEK ENERGY</span>
+    <div class="hdr-right">
+      <div class="sync-dot" id="syncDot"></div>
+      <span class="hdr-date" id="hdrDate"></span>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div class="hdr-title">Hub Operations</div>
+    <div class="staff-badge" id="staffBadge" onclick="switchStaff()">
+      <div class="staff-dot"></div>
+      <span id="staffBadgeName">No staff</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══ DASHBOARD ══════════════════════════════════════════════ -->
+<div class="page active" id="page-dash">
+  <div class="sbar">
+    <div class="sind off" id="sind"></div>
+    <div class="stext" id="stext">Hub not opened today</div>
+    <div class="stime" id="stime"></div>
+  </div>
+
+  <!-- Price banner -->
+  <div style="background:var(--g800);border:1px solid rgba(255,255,255,.1);border-radius:var(--r);padding:14px 16px;margin-bottom:11px;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Rental fee</div>
+      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;color:var(--g300)" id="dashRentalPrice">₦--</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Per rental</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5)" id="dashHubName">--</div>
+    </div>
+  </div>
+
+  <div class="sg">
+    <div class="sc"><div class="sv" id="dRentals">0</div><div class="sl">Rentals</div></div>
+    <div class="sc" id="scOut"><div class="sv" id="dOut">0</div><div class="sl">Units Out</div></div>
+    <div class="sc"><div class="sv" id="dReturned">0</div><div class="sl">Returned</div></div>
+    <div class="sc" id="scOverdue"><div class="sv" id="dOverdue">0</div><div class="sl">Overdue</div></div>
+  </div>
+  <!-- Revenue card — owner only, hidden for staff -->
+  <div id="revenueCard" style="display:none;background:var(--g700);border:1px solid rgba(52,168,84,.3);border-radius:var(--r);padding:14px 16px;margin-bottom:11px;cursor:pointer" onclick="sendPrompt('Show me the Hespek revenue dashboard')">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:10px;color:var(--g300);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Today's revenue</div>
+        <div style="font-family:'Space Mono',monospace;font-size:32px;font-weight:700;color:var(--g300)" id="dRevenue">₦0</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px" id="dRevenueTarget"></div>
+        <button onclick="event.stopPropagation();openRevenueDashboard()" style="background:var(--g400);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">Full dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="slabel">Thermal status</div>
+  <div class="tg">
+    <div class="tg-row"><span class="tg-name">Battery bank</span><span class="tg-val safe" id="dBattT">-- °C</span></div>
+    <div class="tg-track"><div class="tg-fill" id="dBattB" style="width:0%"></div></div>
+    <div class="tg-hint">Safe: 0–45°C · Ideal: 15–35°C</div>
+  </div>
+  <div class="tg">
+    <div class="tg-row"><span class="tg-name">Charging cabinet</span><span class="tg-val safe" id="dCabT">-- °C</span></div>
+    <div class="tg-track"><div class="tg-fill" id="dCabB" style="width:0%"></div></div>
+    <div class="tg-hint">Safe: 0–45°C · Reduce above 42°C</div>
+  </div>
+
+  <div class="slabel">Checklists</div>
+  <div class="card">
+    <div class="pw"><div class="pl"><span style="font-size:12px;color:var(--muted)">Morning open</span><span class="pcount" id="opProg">0/18</span></div><div class="pt"><div class="pf" id="opBar" style="width:0%"></div></div></div>
+    <div class="pw"><div class="pl"><span style="font-size:12px;color:var(--muted)">Midday thermal</span><span class="pcount" id="midProg">0/11</span></div><div class="pt"><div class="pf" id="midBar" style="width:0%"></div></div></div>
+    <div class="pw" style="margin-bottom:0"><div class="pl"><span style="font-size:12px;color:var(--muted)">Evening close</span><span class="pcount" id="clProg">0/17</span></div><div class="pt"><div class="pf" id="clBar" style="width:0%"></div></div></div>
+  </div>
+  <div id="alertsPanel"></div>
+  <button class="btn btn-p" onclick="goTab('rent')" style="margin-top:4px">New Rental ⚡</button>
+</div>
+
+<!-- ══ RENT ════════════════════════════════════════════════════ -->
+<div class="page" id="page-rent">
+  <!-- Staff on duty indicator -->
+  <div id="rentStaffBar" style="display:flex;align-items:center;gap:8px;background:var(--g800);border:1px solid rgba(255,255,255,.09);border-radius:var(--r);padding:10px 13px;margin-bottom:12px">
+    <div style="font-size:12px;color:rgba(255,255,255,.45)">Staff on duty:</div>
+    <div style="font-size:13px;font-weight:600;color:var(--g300)" id="rentStaffName">Not selected</div>
+    <button onclick="switchStaff()" style="margin-left:auto;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:20px;color:rgba(255,255,255,.5);font-size:11px;padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif">Change</button>
+  </div>
+
+  <div class="steps">
+    <div class="step-bar" id="si1" style="background:var(--g400)"></div>
+    <div class="step-bar" id="si2" style="background:rgba(255,255,255,.15)"></div>
+    <div class="step-bar" id="si3" style="background:rgba(255,255,255,.15)"></div>
+    <span class="step-label" id="siLabel">Step 1/3</span>
+  </div>
+
+  <!-- Step 1 -->
+  <div id="step1">
+    <div class="slabel">Step 1 — Scan NYSC ID</div>
+    <div class="scan-box" onclick="openScannerID()">
+      <div style="font-size:32px;margin-bottom:7px">📷</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.72);font-weight:500">Tap to scan ID barcode</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">Camera reads NYSC ID number automatically</div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--muted);margin:10px 0">— or type manually —</div>
+    <div class="card">
+      <div class="fg">
+        <label class="fl">NYSC ID Number</label>
+        <input class="fi mono" id="s1_id" type="text" placeholder="e.g. AB/24A/0001" autocomplete="off">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label class="fl">Name (read from ID card)</label>
+        <input class="fi" id="s1_name" type="text" placeholder="As shown on NYSC ID" autocomplete="off">
+      </div>
+    </div>
+    <button class="btn btn-p" onclick="toStep2()">Next →</button>
+  </div>
+
+  <!-- Step 2 -->
+  <div id="step2" style="display:none">
+    <div class="slabel">Step 2 — Phone & payment</div>
+    <div class="card" style="background:var(--g50);border:1px solid var(--g100);margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:9px">
+        <div style="font-size:18px">✓</div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--g700)" id="s2_idShow"></div><div style="font-size:12px;color:var(--muted)" id="s2_nameShow"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="fg" style="margin-bottom:0">
+        <label class="fl">Phone number</label>
+        <input class="fi mono" id="s2_phone" type="tel" placeholder="08XXXXXXXXX" inputmode="numeric" style="font-size:20px">
+      </div>
+    </div>
+    <div class="slabel">Payment method</div>
+    <div class="pm-row">
+      <button class="pm-btn sel" id="pm_cash" onclick="selectPM('cash')">Cash</button>
+      <button class="pm-btn" id="pm_transfer" onclick="selectPM('transfer')">Transfer</button>
+      <button class="pm-btn" id="pm_pos" onclick="selectPM('pos')">POS</button>
+    </div>
+    <!-- Live price summary -->
+    <div style="background:var(--g800);border-radius:var(--rs);padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:13px;color:rgba(255,255,255,.6)">Total to collect</div>
+      <div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--g300)" id="rentTotalLabel">₦--</div>
+    </div>
+    <button class="btn btn-p" onclick="toStep3()">Next →</button>
+    <button class="btn btn-o btn-sm" style="display:block;text-align:center;margin-top:8px" onclick="toStep1()">← Back</button>
+  </div>
+
+  <!-- Step 3 -->
+  <div id="step3" style="display:none">
+    <div class="slabel">Step 3 — Select power bank unit</div>
+    <div class="card" style="background:var(--g50);border:1px solid var(--g100);margin-bottom:10px">
+      <div style="font-size:13px;font-weight:600;color:var(--g700)" id="s3_summary"></div>
+    </div>
+
+    <!-- QR scan option -->
+    <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
+      <button onclick="openScannerPB()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--g800);border:1.5px solid rgba(52,168,84,.4);border-radius:var(--r);padding:13px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif">
+        <span style="font-size:22px">📷</span>
+        <div style="text-align:left">
+          <div style="font-size:14px;font-weight:600;color:var(--g300)">Scan power bank QR</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px">Auto-selects unit from label</div>
+        </div>
+      </button>
+      <div style="font-size:12px;color:rgba(255,255,255,.35);padding:0 4px">or</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.45);text-align:center;line-height:1.5">Tap unit<br>in grid</div>
+    </div>
+
+    <div class="slot-legend">
+      <div class="sli"><div class="sld" style="background:var(--g50);border:1.5px solid var(--g400)"></div>Available</div>
+      <div class="sli"><div class="sld" style="background:var(--amber-l);border:1.5px solid var(--amber)"></div>Out</div>
+      <div class="sli"><div class="sld" style="background:var(--blue-l);border:1.5px solid var(--blue)"></div>Returned</div>
+      <div class="sli"><div class="sld" style="background:#f3e8ff;border:1.5px solid #a855f7"></div>Cool-down</div>
+    </div>
+    <div class="slot-grid" id="slotGrid"></div>
+    <div id="selSlotInfo" style="display:none;margin-bottom:11px">
+      <div class="alert alert-g">Unit <strong id="selSlotNum"></strong> selected — ready to issue.</div>
+    </div>
+    <button class="btn btn-p" id="issueBtn" onclick="issueRental()" disabled style="opacity:.4">Issue Power Bank</button>
+    <button class="btn btn-o btn-sm" style="display:block;text-align:center;margin-top:8px" onclick="toStep2()">← Back</button>
+  </div>
+</div>
+
+<!-- ══ ACTIVE ══════════════════════════════════════════════════ -->
+<div class="page" id="page-active">
+  <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
+    <button class="btn btn-sm" id="filter-out" style="background:var(--g400);color:#fff;border:none;flex-shrink:0" onclick="filterRentals('out')">Out Now</button>
+    <button class="btn btn-sm" id="filter-all" style="background:var(--g800);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15);flex-shrink:0" onclick="filterRentals('all')">All Today</button>
+    <button class="btn btn-sm" id="filter-overdue" style="background:var(--g800);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15);flex-shrink:0" onclick="filterRentals('overdue')">Overdue</button>
+    <button class="btn btn-sm btn-a" style="margin-left:auto;flex-shrink:0" onclick="sendAllReminders()">Remind All</button>
+  </div>
+  <div class="sg" style="margin-bottom:11px">
+    <div class="sc"><div class="sv" id="acCount">0</div><div class="sl">Out Now</div></div>
+    <div class="sc warn"><div class="sv" id="odCount">0</div><div class="sl">Overdue</div></div>
+  </div>
+  <div id="activeList"><div class="empty"><div class="empty-icon">📦</div><div>No rentals yet</div></div></div>
+</div>
+
+<!-- ══ CHECKS ══════════════════════════════════════════════════ -->
+<div class="page" id="page-checks">
+  <div style="display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">
+    <button class="btn btn-sm chk-tab" id="ct-open" style="flex-shrink:0;background:var(--g400);color:#fff;border:none" onclick="showChecks('open')">Morning</button>
+    <button class="btn btn-sm chk-tab" id="ct-mid" style="flex-shrink:0;background:var(--g800);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15)" onclick="showChecks('mid')">Midday</button>
+    <button class="btn btn-sm chk-tab" id="ct-close" style="flex-shrink:0;background:var(--g800);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15)" onclick="showChecks('close')">Close</button>
+  </div>
+  <div id="checksContent"></div>
+</div>
+
+<!-- ══ LOG ══════════════════════════════════════════════════════ -->
+<div class="page" id="page-log">
+  <div class="slabel">Today's summary</div>
+  <div id="logSummary" class="card"></div>
+  <div class="slabel">Transactions</div>
+  <div id="logTx"></div>
+  <div style="height:10px"></div>
+  <button class="btn btn-o" onclick="exportLog()">Export Log</button>
+  <button class="btn btn-o" style="color:#f87171;border-color:#7f1d1d;margin-top:6px" onclick="requirePIN('reset',clearDay)">Reset Day (PIN required)</button>
+</div>
+
+<!-- ══ SETTINGS ════════════════════════════════════════════════ -->
+<div class="page" id="page-settings">
+  <!-- Lock indicator -->
+  <div id="settingsLockBar" style="display:flex;align-items:center;justify-content:space-between;background:var(--g800);border:1px solid rgba(255,255,255,.09);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+    <div>
+      <div style="font-size:13px;font-weight:600" id="settingsLockLabel">Settings locked</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">Admin PIN required to make changes</div>
+    </div>
+    <button id="settingsLockBtn" class="btn btn-sm" style="background:var(--g400);color:#fff;border:none;flex-shrink:0" onclick="toggleSettingsLock()">Unlock</button>
+  </div>
+
+  <div id="settingsContent">
+    <!-- Pricing -->
+    <div class="slabel">Pricing</div>
+    <div class="card" id="pricingCard">
+      <div class="setting-row" style="border-bottom:none">
+        <div><div class="setting-label">Rental fee</div><div class="setting-sub">Charged per power bank rental</div></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:13px;color:var(--muted)">₦</span>
+          <input class="fi" id="cfg_rental" type="number" style="width:90px;padding:8px 10px;font-size:16px;font-family:'Space Mono',monospace;text-align:right" disabled>
+        </div>
+      </div>
+    </div>
+
+    <!-- Staff management -->
+    <div class="slabel">Staff & PIN management</div>
+    <div class="card" id="staffCard">
+      <div class="alert alert-b" style="margin-bottom:12px"><strong>Admin &amp; Supervisor</strong> roles can unlock Settings. Staff role can only issue/return rentals.</div>
+      <div id="staffManageList" style="margin-bottom:12px"></div>
+      <div style="display:grid;grid-template-columns:1fr 80px 90px auto;gap:7px;align-items:end">
+        <div><label class="fl">Name</label><input class="fi" id="newStaffName" type="text" placeholder="Full name" style="padding:9px 11px" disabled></div>
+        <div><label class="fl">PIN</label><input class="fi mono" id="newStaffPin" type="password" inputmode="numeric" maxlength="4" placeholder="4 dig" style="padding:9px 8px;text-align:center" disabled></div>
+        <div><label class="fl">Role</label><select class="fs" id="newStaffRole" style="padding:9px 8px" disabled>
+          <option value="staff">Staff</option>
+          <option value="supervisor">Supervisor</option>
+          <option value="admin">Admin</option>
+        </select></div>
+        <div style="padding-bottom:1px"><button class="btn btn-sm btn-p" onclick="addStaff()" id="addStaffBtn" disabled style="white-space:nowrap">+ Add</button></div>
+      </div>
+    </div>
+
+    <!-- Hub settings -->
+    <div class="slabel">Hub settings</div>
+    <div class="card" id="hubCard">
+      <div class="setting-row">
+        <div><div class="setting-label">Hub close time</div><div class="setting-sub">Reminder sent 2 hours before</div></div>
+        <select class="fs" id="cfg_close" style="width:100px;padding:7px 10px;font-size:14px" disabled>
+          <option value="21">9:00 PM</option>
+          <option value="22" selected>10:00 PM</option>
+          <option value="22.5">10:30 PM</option>
+          <option value="23">11:00 PM</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Fleet size</div><div class="setting-sub">Total power banks</div></div>
+        <select class="fs" id="cfg_fleet" style="width:90px;padding:7px 10px;font-size:14px" disabled>
+          <option value="50">50</option><option value="75">75</option>
+          <option value="100" selected>100</option>
+        </select>
+      </div>
+      <div class="setting-row" style="border-bottom:none">
+        <div><div class="setting-label">Hub name</div><div class="setting-sub">Shown on receipts</div></div>
+        <input class="fi" id="cfg_hub" type="text" placeholder="NYSC Abuja" style="width:140px;padding:8px 10px;font-size:13px;text-align:right" disabled>
+      </div>
+    </div>
+
+    <!-- Google Sheets -->
+    <div class="slabel">Google Sheets</div>
+    <div class="card" id="sheetsCard">
+      <div class="fg">
+        <label class="fl">Web App URL</label>
+        <input class="fi" id="cfg_url" type="url" placeholder="https://script.google.com/macros/s/..." style="font-size:12px" disabled>
+      </div>
+      <button class="btn btn-sm" id="testConnBtn" onclick="testConnection()" disabled style="background:var(--g800);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1)">Test Connection</button>
+      <div id="connStatus" style="margin-top:8px;font-size:13px"></div>
+    </div>
+
+    <!-- Admin PIN management -->
+    <div class="slabel">Admin PIN</div>
+    <div class="card" id="pinCard">
+      <div class="setting-row" style="border-bottom:none">
+        <div><div class="setting-label">Change admin PIN</div><div class="setting-sub" id="pinStatus">Default PIN is 1234 — change it now</div></div>
+        <button class="btn btn-sm" id="changePinBtn" onclick="showChangePIN()" disabled style="background:var(--g800);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1)">Change</button>
+      </div>
+    </div>
+
+    <button class="btn btn-p" id="saveSettingsBtn" onclick="saveSettings()" disabled style="opacity:.4;margin-top:4px">Save All Settings</button>
+  </div>
+</div>
+
+</div><!-- /.main -->
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <button class="bnav-btn active" id="bn-dash" onclick="goTab('dash')"><span class="icon">⌂</span>Home</button>
+  <button class="bnav-btn" id="bn-rent" onclick="goTab('rent')"><span class="icon">⚡</span>Rent</button>
+  <button class="bnav-btn" id="bn-active" onclick="goTab('active')"><span class="icon">📋</span>Active</button>
+  <button class="bnav-btn" id="bn-checks" onclick="goTab('checks')"><span class="icon">✓</span>Checks</button>
+  <button class="bnav-btn" id="bn-log" onclick="goTab('log')"><span class="icon">📊</span>Log</button>
+  <button class="bnav-btn" id="bn-profile" onclick="openProfile()"><span class="icon">👤</span>Profile</button>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="mo" id="profileModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <!-- Staff info card -->
+    <div style="display:flex;align-items:center;gap:14px;padding:4px 0 18px;border-bottom:1px solid var(--border);margin-bottom:16px">
+      <div id="profileAvatar" style="width:56px;height:56px;border-radius:50%;background:var(--g50);border:2px solid var(--g100);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--g700);font-family:'Space Mono',monospace;flex-shrink:0"></div>
+      <div style="flex:1">
+        <div style="font-size:18px;font-weight:700;color:var(--ink)" id="profileName">—</div>
+        <div id="profileRoleBadge" style="margin-top:4px"></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px" id="profileShiftInfo"></div>
+      </div>
+    </div>
+    <!-- Quick actions -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <button onclick="closeModal('profileModal');switchStaff()" style="padding:14px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--surf);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--ink);cursor:pointer;text-align:center">
+        <div style="font-size:22px;margin-bottom:4px">🔄</div>Switch staff
+      </button>
+      <button onclick="closeModal('profileModal');requirePIN('settings',()=>goTab('settings'))" id="profileSettingsBtn" style="padding:14px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--surf);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--ink);cursor:pointer;text-align:center">
+        <div style="font-size:22px;margin-bottom:4px">⚙️</div>Settings
+      </button>
+    </div>
+    <!-- Shift summary -->
+    <div style="background:var(--surf);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">My shift today</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+        <div><div style="font-size:20px;font-weight:700;font-family:'Space Mono',monospace;color:var(--ink)" id="profileRentals">0</div><div style="font-size:11px;color:var(--muted)">Rentals</div></div>
+        <div><div style="font-size:20px;font-weight:700;font-family:'Space Mono',monospace;color:var(--ink)" id="profileReturned">0</div><div style="font-size:11px;color:var(--muted)">Returned</div></div>
+        <div><div style="font-size:20px;font-weight:700;font-family:'Space Mono',monospace;color:var(--ink)" id="profileRevenue">₦0</div><div style="font-size:11px;color:var(--muted)">Revenue</div></div>
+      </div>
+    </div>
+    <button class="btn btn-o" onclick="closeModal('profileModal')">Close</button>
+  </div>
+</div>
+
+<!-- RETURN MODAL -->
+<div class="mo" id="returnModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle">Process Return</div>
+    <div id="retDetails" style="margin-bottom:12px;padding:11px;background:var(--surf);border-radius:var(--rs);font-size:14px;line-height:1.8"></div>
+    <div class="alert alert-a"><strong>Inspect before returning ID:</strong> check for damage and verify all 3 cables in pouch.</div>
+    <div class="fg">
+      <label class="fl">Condition on return</label>
+      <select class="fs" id="retCondition">
+        <option value="good">Good — no damage</option>
+        <option value="minor">Minor wear — acceptable</option>
+        <option value="damaged">Damaged — record issue</option>
+        <option value="cable">Missing cable(s)</option>
+      </select>
+    </div>
+    <div class="fg" style="margin-bottom:14px">
+      <label class="fl">Notes (optional)</label>
+      <input class="fi" id="retNotes" type="text" placeholder="Any issues...">
+    </div>
+    <button class="btn btn-p" onclick="confirmReturn()">Confirm Return & Return ID</button>
+    <button class="btn btn-o" onclick="closeModal('returnModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- REMINDER MODAL -->
+<div class="mo" id="reminderModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle">Send Return Reminders</div>
+    <div id="reminderDetails" style="margin-bottom:14px;font-size:14px;line-height:1.7;color:var(--muted)"></div>
+    <div id="reminderButtons"></div>
+    <button class="btn btn-o" onclick="closeModal('reminderModal')" style="margin-top:8px">Close</button>
+  </div>
+</div>
+
+<!-- CHANGE PIN MODAL -->
+<div class="mo" id="changePINModal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle">Change Admin PIN</div>
+    <div class="fg">
+      <label class="fl">New 4-digit PIN</label>
+      <input class="fi mono" id="newPIN1" type="password" inputmode="numeric" maxlength="4" placeholder="• • • •" style="font-size:28px;text-align:center;letter-spacing:.3em">
+    </div>
+    <div class="fg" style="margin-bottom:14px">
+      <label class="fl">Confirm new PIN</label>
+      <input class="fi mono" id="newPIN2" type="password" inputmode="numeric" maxlength="4" placeholder="• • • •" style="font-size:28px;text-align:center;letter-spacing:.3em">
+    </div>
+    <button class="btn btn-p" onclick="saveNewPIN()">Save New PIN</button>
+    <button class="btn btn-o" onclick="closeModal('changePINModal')">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js"></script>
+<script>
+// ══ STORAGE KEYS ══════════════════════════════════════════════
+const SK='hespek_v4', CFG_KEY='hespek_cfg4';
+
+function today(){return new Date().toISOString().slice(0,10);}
+
+// ══ CONFIG ════════════════════════════════════════════════════
+let CFG=JSON.parse(localStorage.getItem(CFG_KEY)||'{}');
+CFG=Object.assign({
+  url:'https://script.google.com/macros/s/AKfycbzpe6K1-P82Mczu-GBq62I-rsas_9SU9q9VdEU88GzDZZTvYFNuUpST1WjN8WCKXkkdFw/exec',
+  closeHour:22, fleet:100, hub:'NYSC Abuja Camp',
+  rentalPrice:1000, revenueTarget:35000,
+  adminPIN:'1234', pinSet:false,
+  staff:[
+    {name:'Owner',role:'admin',pin:'1234',pinSet:false},
+    {name:'Supervisor',role:'supervisor',pin:'5678',pinSet:false},
+    {name:'Staff 1',role:'staff',pin:'0000',pinSet:false},
+    {name:'Staff 2',role:'staff',pin:'0000',pinSet:false}
+  ]
+},CFG);
+
+function saveCfg(){localStorage.setItem(CFG_KEY,JSON.stringify(CFG));}
+
+// ══ STATE ═════════════════════════════════════════════════════
+let S=(()=>{
+  const raw=localStorage.getItem(SK);
+  const d=raw?JSON.parse(raw):null;
+  if(d&&d.date===today())return d;
+  return{date:today(),hubOpen:false,hubOpenTime:null,rentals:[],
+         checklists:{},thermalLogs:[],lastBT:null,lastCT:null,
+         cooldownSlots:{},currentStaff:null};
+})();
+
+function save(){localStorage.setItem(SK,JSON.stringify(S));}
+
+// ══ STAFF PIN LOGIN SYSTEM ════════════════════════════════════
+let loginBuffer='', loginStaffIndex=-1;
+
+function showStaffSelector(){
+  loginBuffer='';loginStaffIndex=-1;
+  showLoginStepA();
+  document.getElementById('staffOverlay').classList.add('open');
+}
+
+function showLoginStepA(){
+  document.getElementById('loginStepA').style.display='block';
+  document.getElementById('loginStepB').style.display='none';
+  document.getElementById('loginTitle').textContent='Who is on duty?';
+  document.getElementById('loginSub').textContent='Select your name then enter your PIN';
+  renderStaffList();
+}
+
+function showLoginStepB(i){
+  loginStaffIndex=i;loginBuffer='';
+  const s=CFG.staff[i];
+  const initials=s.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('loginAvatar').textContent=initials;
+  document.getElementById('loginName').textContent=s.name;
+  document.getElementById('loginRole').textContent=s.role+(!s.pinSet?' · default PIN: 0000':'');
+  document.getElementById('loginTitle').textContent='Enter your PIN';
+  document.getElementById('loginSub').textContent=s.pinSet?'Enter your 4-digit PIN':'Default PIN is 0000 — change in Settings';
+  updateLoginDots();
+  document.getElementById('loginStepA').style.display='none';
+  document.getElementById('loginStepB').style.display='flex';
+}
+
+function backToNameSelect(){showLoginStepA();}
+
+function renderStaffList(){
+  const el=document.getElementById('staffList');
+  if(!el)return;
+  el.innerHTML=CFG.staff.map((s,i)=>{
+    const initials=s.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const roleColor=s.role==='admin'?'#7f1d1d':s.role==='supervisor'?'#1e3a8a':'#145228';
+    return`<div class="staff-item" onclick="showLoginStepB(${i})">
+      <div class="staff-avatar">${initials}</div>
+      <div style="flex:1"><div class="staff-name">${s.name}</div><div class="staff-role" style="color:${roleColor}">${s.role}</div></div>
+      <div style="font-size:20px;color:rgba(255,255,255,.2)">›</div>
+    </div>`;
+  }).join('');
+}
+
+function loginPinKey(k){
+  if(loginBuffer.length>=4)return;
+  loginBuffer+=k;updateLoginDots();
+  if(loginBuffer.length===4)setTimeout(checkLoginPIN,120);
+}
+
+function loginPinDel(){loginBuffer=loginBuffer.slice(0,-1);updateLoginDots();}
+
+function updateLoginDots(err=false){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('ld'+i);if(!d)return;
+    if(err)d.className='pin-dot error';
+    else d.className='pin-dot'+(i<loginBuffer.length?' filled':'');
+  }
+}
+
+function checkLoginPIN(){
+  if(loginStaffIndex<0)return;
+  const s=CFG.staff[loginStaffIndex];
+  const correct=s.pinSet?s.pin:'0000';
+  if(loginBuffer===correct){
+    document.getElementById('staffOverlay').classList.remove('open');
+    S.currentStaff=s.name;S.currentStaffRole=s.role;
+    if(!S.hubOpen){S.hubOpen=true;S.hubOpenTime=new Date().toISOString();}
+    save();updateStaffUI();updateDash();
+    showToast('✓ Welcome, '+s.name);
+    loginBuffer='';loginStaffIndex=-1;
+  }else{
+    updateLoginDots(true);loginBuffer='';
+    setTimeout(()=>updateLoginDots(),700);
+    showToast('⚠️ Wrong PIN — try again','err');
+  }
+}
+
+function skipStaffSelect(){
+  document.getElementById('staffOverlay').classList.remove('open');
+  S.currentStaff='Guest';S.currentStaffRole='staff';save();updateStaffUI();
+}
+
+function switchStaff(){showStaffSelector();}
+
+function updateStaffUI(){
+  const name=S.currentStaff||'No staff';
+  sset('staffBadgeName',name);sset('rentStaffName',name);
+}
+
+function addStaff(){
+  const name=document.getElementById('newStaffName').value.trim();
+  const pin=document.getElementById('newStaffPin').value.trim();
+  const role=document.getElementById('newStaffRole').value;
+  if(!name){showToast('⚠️ Enter a staff name');return;}
+  if(pin&&(pin.length!==4||!/^\d{4}$/.test(pin))){showToast('⚠️ PIN must be 4 digits','err');return;}
+  CFG.staff.push({name,role,pin:pin||'0000',pinSet:!!pin});
+  saveCfg();
+  document.getElementById('newStaffName').value='';
+  document.getElementById('newStaffPin').value='';
+  renderStaffManageList();
+  showToast('✓ '+name+' added'+(pin?'':' — default PIN 0000'));
+}
+
+function removeStaff(i){
+  if(CFG.staff.length<=1){showToast('⚠️ Must keep at least one staff member');return;}
+  const name=CFG.staff[i].name;
+  CFG.staff.splice(i,1);saveCfg();renderStaffManageList();
+  showToast('✓ '+name+' removed');
+}
+
+function updateStaffPIN(i){
+  const input=document.getElementById('staffpin_'+i);if(!input)return;
+  const pin=input.value.trim();
+  if(pin.length!==4||!/^\d{4}$/.test(pin)){showToast('⚠️ PIN must be exactly 4 digits','err');return;}
+  CFG.staff[i].pin=pin;CFG.staff[i].pinSet=true;saveCfg();
+  input.value='';input.placeholder='Updated ✓';
+  showToast('✓ PIN updated for '+CFG.staff[i].name);
+}
+
+function renderStaffManageList(){
+  const el=document.getElementById('staffManageList');if(!el)return;
+  const rc=r=>r==='admin'?'br':r==='supervisor'?'bb':'bg';
+  el.innerHTML=CFG.staff.map((s,i)=>
+    `<div style="display:grid;grid-template-columns:1fr 80px 70px 60px;gap:7px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:14px;font-weight:500;color:var(--ink)">${s.name}</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">
+          <span class="badge ${rc(s.role)}">${s.role}</span>
+          <span style="font-size:10px;color:var(--muted)">${s.pinSet?'PIN set':'PIN: 0000'}</span>
+        </div></div>
+      <input id="staffpin_${i}" type="password" inputmode="numeric" maxlength="4" placeholder="New PIN" class="fi mono" style="padding:7px 6px;font-size:14px;text-align:center">
+      <button onclick="updateStaffPIN(${i})" style="background:var(--g50);color:var(--g700);border:1px solid var(--g100);border-radius:6px;padding:7px 6px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Set PIN</button>
+      <button onclick="removeStaff(${i})" style="background:var(--red-l);color:var(--red-d);border:none;border-radius:6px;padding:7px 8px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">✕</button>
+    </div>`
+  ).join('');
+}
+
+// ══ PIN SYSTEM (for settings & sensitive actions) ═════════════
+let pinBuffer='', pinCallback=null, pinCancelable=true, settingsUnlocked=false;
+
+function requirePIN(context, callback, cancelable=true){
+  pinBuffer='';pinCallback=callback;pinCancelable=cancelable;
+  updatePinDots();
+  document.getElementById('pinTitle').textContent=
+    context==='settings'?'Unlock Settings':
+    context==='reset'?'Confirm Reset':'Admin PIN Required';
+  document.getElementById('pinSub').textContent=
+    !CFG.pinSet?'Default admin PIN is 1234. Change in Settings.':'Enter the 4-digit admin PIN';
+  document.getElementById('pinCancel').style.display=cancelable?'block':'none';
+  document.getElementById('pinOverlay').classList.add('open');
+}
+
+function pinKey(k){
+  if(pinBuffer.length>=4)return;
+  pinBuffer+=k;updatePinDots();
+  if(pinBuffer.length===4)setTimeout(checkPIN,120);
+}
+
+function pinDel(){pinBuffer=pinBuffer.slice(0,-1);updatePinDots();}
+
+function updatePinDots(err=false){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('pd'+i);if(!d)return;
+    if(err)d.className='pin-dot error';
+    else d.className='pin-dot'+(i<pinBuffer.length?' filled':'');
+  }
+}
+
+function checkPIN(){
+  if(pinBuffer===CFG.adminPIN){
+    document.getElementById('pinOverlay').classList.remove('open');
+    pinBuffer='';updatePinDots();
+    if(pinCallback){pinCallback();pinCallback=null;}
+  }else{
+    updatePinDots(true);pinBuffer='';
+    setTimeout(()=>updatePinDots(),700);
+    showToast('⚠️ Wrong PIN','err');
+  }
+}
+
+function closePIN(){
+  if(!pinCancelable)return;
+  document.getElementById('pinOverlay').classList.remove('open');
+  pinBuffer='';updatePinDots();pinCallback=null;
+}
+
+// Settings unlock — only admin or supervisor role can access
+function toggleSettingsLock(){
+  if(settingsUnlocked){lockSettings();return;}
+  const role=S.currentStaffRole||'staff';
+  if(!['admin','supervisor'].includes(role)){
+    showToast('⚠️ Only Admin or Supervisor can access Settings','err');return;
+  }
+  requirePIN('settings',unlockSettings);
+}
+
+function unlockSettings(){
+  settingsUnlocked=true;
+  // Enable all settings inputs
+  ['cfg_rental','cfg_close','cfg_fleet','cfg_hub','cfg_url',
+   'newStaffName','newStaffRole','addStaffBtn','testConnBtn','changePinBtn','saveSettingsBtn']
+    .forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.disabled=false;el.style.opacity='1';}
+    });
+  document.getElementById('settingsLockLabel').textContent='Settings unlocked';
+  document.getElementById('settingsLockLabel').style.color='var(--g300)';
+  document.getElementById('settingsLockBtn').textContent='Lock';
+  document.getElementById('settingsLockBtn').style.background='var(--red)';
+  // Load current values
+  document.getElementById('cfg_rental').value=CFG.rentalPrice;
+  document.getElementById('cfg_close').value=CFG.closeHour;
+  document.getElementById('cfg_fleet').value=CFG.fleet;
+  document.getElementById('cfg_hub').value=CFG.hub||'';
+  document.getElementById('cfg_url').value=CFG.url||'';
+  document.getElementById('pinStatus').textContent=CFG.pinSet?'Custom PIN is set':'Default PIN 1234 — change it now';
+  renderStaffManageList();
+  showToast('✓ Settings unlocked');
+}
+
+function lockSettings(){
+  settingsUnlocked=false;
+  ['cfg_rental','cfg_close','cfg_fleet','cfg_hub','cfg_url',
+   'newStaffName','newStaffPin','newStaffRole','addStaffBtn','testConnBtn','changePinBtn','saveSettingsBtn']
+    .forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.disabled=true;el.style.opacity=id==='saveSettingsBtn'?'':'1';}
+    });
+  document.getElementById('saveSettingsBtn').style.opacity='.4';
+  document.getElementById('settingsLockLabel').textContent='Settings locked';
+  document.getElementById('settingsLockLabel').style.color='';
+  document.getElementById('settingsLockBtn').textContent='Unlock';
+  document.getElementById('settingsLockBtn').style.background='var(--g400)';
+  showToast('Settings locked');
+}
+
+function showChangePIN(){
+  document.getElementById('newPIN1').value='';
+  document.getElementById('newPIN2').value='';
+  openModal('changePINModal');
+}
+
+function saveNewPIN(){
+  const p1=document.getElementById('newPIN1').value;
+  const p2=document.getElementById('newPIN2').value;
+  if(p1.length!==4||!/^\d{4}$/.test(p1)){showToast('⚠️ PIN must be exactly 4 digits','err');return;}
+  if(p1!==p2){showToast('⚠️ PINs do not match','err');return;}
+  CFG.adminPIN=p1;CFG.pinSet=true;saveCfg();
+  closeModal('changePINModal');
+  document.getElementById('pinStatus').textContent='Custom PIN is set ✓';
+  showToast('✓ Admin PIN updated successfully');
+}
+
+// ══ RENTAL FLOW ════════════════════════════════════════════════
+let rf={id:'',name:'',phone:'',pm:'cash',slot:null};
+
+function resetFlow(){
+  rf={id:'',name:'',phone:'',pm:'cash',slot:null};
+  ['s1_id','s1_name','s2_phone'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  selectPM('cash');setStep(1);
+}
+
+function setStep(n){
+  [1,2,3].forEach(i=>{
+    const el=document.getElementById('step'+i);
+    if(el)el.style.display=i===n?'block':'none';
+    const bar=document.getElementById('si'+i);
+    if(bar)bar.style.background=i<=n?'var(--g400)':'rgba(255,255,255,.15)';
+  });
+  document.getElementById('siLabel').textContent='Step '+n+'/3';
+}
+
+function toStep2(){
+  const id=document.getElementById('s1_id').value.trim();
+  if(!id){showToast('⚠️ Enter NYSC ID number');return;}
+  rf.id=id;rf.name=document.getElementById('s1_name').value.trim()||'—';
+  document.getElementById('s2_idShow').textContent=id;
+  document.getElementById('s2_nameShow').textContent=rf.name;
+  // Update total label
+  document.getElementById('rentTotalLabel').textContent='₦'+CFG.rentalPrice.toLocaleString();
+  setStep(2);
+  setTimeout(()=>document.getElementById('s2_phone').focus(),200);
+}
+
+function toStep1(){setStep(1);}
+
+function selectPM(pm){
+  rf.pm=pm;
+  ['cash','transfer','pos'].forEach(p=>{
+    const b=document.getElementById('pm_'+p);
+    if(!b)return;
+    b.className='pm-btn'+(p===pm?' sel':'');
+  });
+}
+
+function toStep3(){
+  const ph=document.getElementById('s2_phone').value.trim();
+  if(!ph||ph.length<10){showToast('⚠️ Enter a valid phone number');return;}
+  rf.phone=ph;
+  document.getElementById('s3_summary').textContent=rf.id+' · '+rf.phone;
+  setStep(3);renderSlotGrid();
+}
+
+// ══ SLOT GRID ══════════════════════════════════════════════════
+function slotStatus(n){
+  if(S.rentals.filter(r=>!r.returned&&r.slot===n).length)return'out';
+  if(S.rentals.filter(r=>r.returned&&r.slot===n&&r.date===today()).length)return'returned';
+  if(S.cooldownSlots&&S.cooldownSlots[n])return'cooldown';
+  return'available';
+}
+
+function renderSlotGrid(){
+  const grid=document.getElementById('slotGrid');
+  if(!grid)return;
+  grid.innerHTML='';
+  for(let i=1;i<=CFG.fleet;i++){
+    const st=slotStatus(i);
+    const div=document.createElement('div');
+    div.className='slot '+(rf.slot===i?'selected':st);
+    div.textContent=i;
+    if(st==='available'||rf.slot===i)div.onclick=()=>selectSlot(i);
+    grid.appendChild(div);
+  }
+}
+
+function selectSlot(n){
+  rf.slot=rf.slot===n?null:n;
+  const info=document.getElementById('selSlotInfo');
+  const btn=document.getElementById('issueBtn');
+  if(rf.slot){
+    info.style.display='block';
+    document.getElementById('selSlotNum').textContent='HK-'+String(rf.slot).padStart(3,'0');
+    btn.disabled=false;btn.style.opacity='1';
+  }else{
+    info.style.display='none';btn.disabled=true;btn.style.opacity='.4';
+  }
+  renderSlotGrid();
+}
+
+async function issueRental(){
+  if(!rf.slot){showToast('⚠️ Select a unit');return;}
+  if(!S.currentStaff){showToast('⚠️ Select staff on duty first');switchStaff();return;}
+  const serial='HK-'+String(rf.slot).padStart(3,'0');
+  const rental={
+    id:Date.now(),date:today(),
+    nysc_id:rf.id,name:rf.name,phone:rf.phone,
+    slot:rf.slot,serial,pm:rf.pm,
+    staff:S.currentStaff,
+    rental_price:CFG.rentalPrice,
+    time_out:new Date().toISOString(),
+    time_in:null,returned:false,condition:null,notes:'',reminder_sent:false
+  };
+  S.rentals.push(rental);
+  if(!S.cooldownSlots)S.cooldownSlots={};
+  save();
+  const synced=await syncToSheets({action:'new_rental',...rental});
+  showToast(synced?'✓ '+serial+' issued + synced':'✓ '+serial+' issued (local)');
+  showReceiptModal(rental);
+  updateDash();renderActiveRentals();renderLog();resetFlow();
+}
+
+// ══ RETURN ═════════════════════════════════════════════════════
+let currentRetId=null;
+function openReturnModal(id){
+  currentRetId=id;
+  const r=S.rentals.find(x=>x.id===id);
+  if(!r)return;
+  const tout=new Date(r.time_out).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
+  const hrs=((Date.now()-new Date(r.time_out))/3600000).toFixed(1);
+  document.getElementById('retDetails').innerHTML=
+    `<strong>${r.name}</strong><br>NYSC: ${r.nysc_id}<br>Unit: <strong>${r.serial}</strong><br>Out: ${tout} (${hrs}h) · Issued by: ${r.staff||'—'}`;
+  document.getElementById('retCondition').value='good';
+  document.getElementById('retNotes').value='';
+  openModal('returnModal');
+}
+
+async function confirmReturn(){
+  if(!currentRetId)return;
+  const r=S.rentals.find(x=>x.id===currentRetId);
+  if(!r)return;
+  r.returned=true;r.time_in=new Date().toISOString();
+  r.condition=document.getElementById('retCondition').value;
+  r.notes=document.getElementById('retNotes').value;
+  r.returned_by=S.currentStaff||'—';
+  if(!S.cooldownSlots)S.cooldownSlots={};
+  S.cooldownSlots[r.slot]=Date.now();
+  save();
+  setTimeout(()=>{delete S.cooldownSlots[r.slot];save();renderSlotGrid();},15*60*1000);
+  await updateReturnInSheets(r.id,r.condition,r.notes,r.returned_by);
+  closeModal('returnModal');
+  showToast('✓ '+r.serial+' returned — 15-min cool-down');
+  updateDash();renderActiveRentals();renderLog();
+}
+
+// ══ GOOGLE SHEETS SYNC ════════════════════════════════════════
+function setSyncStatus(st){
+  const d=document.getElementById('syncDot');
+  if(!d)return;
+  d.className='sync-dot '+(st==='idle'?'':st);
+}
+
+async function syncToSheets(payload){
+  if(!CFG.url)return false;
+  setSyncStatus('syncing');
+  try{
+    await fetch(CFG.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    setSyncStatus('synced');setTimeout(()=>setSyncStatus('idle'),3000);return true;
+  }catch(e){setSyncStatus('error');setTimeout(()=>setSyncStatus('idle'),5000);return false;}
+}
+
+async function updateReturnInSheets(id,condition,notes,returnedBy){
+  if(!CFG.url)return;
+  setSyncStatus('syncing');
+  try{
+    await fetch(CFG.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'update_return',rental_id:id,condition,notes,returned_by:returnedBy,time_in:new Date().toISOString()})});
+    setSyncStatus('synced');setTimeout(()=>setSyncStatus('idle'),3000);
+  }catch(e){setSyncStatus('error');setTimeout(()=>setSyncStatus('idle'),5000);}
+}
+
+async function testConnection(){
+  const url=document.getElementById('cfg_url').value.trim();
+  if(!url){showConnStatus('Enter a URL first','amber');return;}
+  showConnStatus('Testing...','blue');
+  try{
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'ping'})});
+    showConnStatus('✓ Connected successfully','green');
+    CFG.url=url;saveCfg();
+  }catch(e){showConnStatus('✗ Could not reach URL — check and redeploy','red');}
+}
+
+function showConnStatus(msg,color){
+  const el=document.getElementById('connStatus');if(!el)return;
+  const cols={green:'var(--g700)',amber:'var(--amber-d)',red:'var(--red)',blue:'var(--blue-d)'};
+  el.style.color=cols[color]||'var(--muted)';el.textContent=msg;
+}
+
+// ══ REMINDERS ══════════════════════════════════════════════════
+function buildReminderMsg(r){
+  const ch=CFG.closeHour||22;
+  const cs=ch===22?'10:00pm':ch===21?'9:00pm':ch===22.5?'10:30pm':'11:00pm';
+  return`Hi ${r.name.split(' ')[0]}, this is a reminder from *Hespek Charging Hub* at ${CFG.hub||'NYSC Camp'}.\n\nYour power bank *${r.serial}* is due for return by *${cs} tonight*.\n\nPlease return it to the hub before closing time. Thank you!`;
+}
+
+function sendReminder(id){
+  const r=S.rentals.find(x=>x.id===id);
+  if(!r||r.returned)return;
+  const phone=r.phone.replace(/^0/,'234').replace(/\D/g,'');
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(buildReminderMsg(r)),'_blank');
+  r.reminder_sent=true;save();renderActiveRentals();showToast('✓ Reminder sent to '+r.name);
+}
+
+function sendAllReminders(){
+  const active=S.rentals.filter(r=>!r.returned);
+  if(!active.length){showToast('No active rentals');return;}
+  document.getElementById('reminderDetails').innerHTML=
+    `<strong>${active.length} unit(s) currently out:</strong>`+
+    active.map(r=>{const hrs=((Date.now()-new Date(r.time_out))/3600000).toFixed(1);
+      return`<div style="padding:7px 0;border-bottom:1px solid var(--border)"><strong>${r.name}</strong> · ${r.serial} · ${hrs}h ${r.reminder_sent?'<span class="badge bg">Reminded</span>':''}</div>`;}).join('');
+  document.getElementById('reminderButtons').innerHTML=
+    active.map(r=>`<button class="btn btn-wa" style="margin-bottom:8px" onclick="sendReminder(${r.id});this.textContent='✓ Sent to ${r.name.split(' ')[0]}'">WhatsApp ${r.name.split(' ')[0]} · ${r.serial}</button>`).join('');
+  openModal('reminderModal');
+}
+
+function checkAutoReminders(){
+  const now=new Date(),h=now.getHours()+(now.getMinutes()/60);
+  const ch=CFG.closeHour||22;
+  if(h>=ch-2&&h<ch){
+    const pending=S.rentals.filter(r=>!r.returned&&!r.reminder_sent);
+    if(pending.length){
+      const ap=document.getElementById('alertsPanel');
+      if(ap&&!document.getElementById('reminderAlert')){
+        const div=document.createElement('div');div.id='reminderAlert';div.className='alert alert-a';
+        div.innerHTML=`<strong>⏰ ${pending.length} unit(s) out — 2hr reminder window.</strong> <span style="cursor:pointer;text-decoration:underline" onclick="sendAllReminders()">Send WhatsApp reminders →</span>`;
+        ap.prepend(div);
+      }
+    }
+  }
+}
+
+// ══ RECEIPT ════════════════════════════════════════════════════
+function showReceiptModal(r){
+  const tout=new Date(r.time_out).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
+  const dt=new Date(r.time_out).toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'});
+  const ch=CFG.closeHour||22;
+  const cs=ch===22?'10:00pm':ch===21?'9:00pm':ch===22.5?'10:30pm':'11:00pm';
+  const total=r.rental_price||CFG.rentalPrice;
+  const msg=`*HESPEK CHARGING HUB*\n${CFG.hub||'NYSC Camp'}\n${dt} ${tout}\n──────────────\nUnit: ${r.serial}\nCorper: ${r.name}\nNYSC ID: ${r.nysc_id}\n──────────────\n*Rental: ₦${total.toLocaleString()}* (${r.pm.toUpperCase()})\n──────────────\nPlease return the power bank by *${cs}*.\nKeep this message as your receipt.`;
+  const phone=r.phone.replace(/^0/,'234').replace(/\D/g,'');
+  const mo=document.createElement('div');mo.className='mo open';
+  mo.innerHTML=`<div class="modal"><div class="mhandle"></div><div class="mtitle">Receipt Ready</div>
+    <div style="background:var(--surf);border-radius:var(--rs);padding:13px;margin-bottom:14px;font-family:'Space Mono',monospace;font-size:12px;line-height:2;color:var(--ink)">
+      <div style="text-align:center;font-weight:700;color:var(--g700);margin-bottom:6px">HESPEK CHARGING HUB</div>
+Unit: ${r.serial} · ${tout}<br>${r.name} · ${r.nysc_id}<br>Staff: ${r.staff||'—'}<br>──────────<br>
+Rental: ₦${(r.rental_price||CFG.rentalPrice).toLocaleString()} (${r.pm.toUpperCase()})<br>──────────<br>Return by ${cs}</div>
+    <a href="https://wa.me/${phone}?text=${encodeURIComponent(msg)}" target="_blank" style="display:block;width:100%;padding:14px;border-radius:14px;background:#25D366;color:#fff;text-align:center;font-weight:600;font-size:15px;text-decoration:none;margin-bottom:8px">📱 Send via WhatsApp</a>
+    <button class="btn btn-o" onclick="this.closest('.mo').remove()">Close</button>
+  </div>`;
+  document.body.appendChild(mo);
+}
+
+// ══ ACTIVE RENTALS ═════════════════════════════════════════════
+let activeFilter='out';
+function filterRentals(f){
+  activeFilter=f;
+  ['out','all','overdue'].forEach(id=>{
+    const b=document.getElementById('filter-'+id);if(!b)return;
+    const active=id===f;
+    b.style.background=active?'var(--g400)':'var(--g800)';
+    b.style.color=active?'#fff':'rgba(255,255,255,.6)';
+    b.style.border=active?'none':'1px solid rgba(255,255,255,.15)';
+  });
+  renderActiveRentals();
+}
+
+function renderActiveRentals(){
+  const el=document.getElementById('activeList');if(!el)return;
+  let list=S.rentals;
+  if(activeFilter==='out')list=S.rentals.filter(r=>!r.returned);
+  else if(activeFilter==='overdue')list=S.rentals.filter(r=>!r.returned&&((Date.now()-new Date(r.time_out))/3600000)>8);
+  const out=S.rentals.filter(r=>!r.returned).length;
+  const od=S.rentals.filter(r=>!r.returned&&((Date.now()-new Date(r.time_out))/3600000)>8).length;
+  sset('acCount',out);sset('odCount',od);
+  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div>No rentals in this filter</div></div>';return;}
+  el.innerHTML=list.map(r=>{
+    const hrs=((Date.now()-new Date(r.time_out))/3600000).toFixed(1);
+    const tout=new Date(r.time_out).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
+    const od=!r.returned&&hrs>8;
+    const statusBadge=r.returned?`<span class="badge bb">Returned</span>`:(od?`<span class="badge br">${hrs}h OVERDUE</span>`:`<span class="badge ba">${hrs}h out</span>`);
+    const reminderBadge=r.reminder_sent&&!r.returned?`<span class="badge bg">Reminded</span>`:'';
+    const actions=r.returned
+      ?`<div style="font-size:12px;color:var(--muted);padding:4px 0">Returned ${new Date(r.time_in).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'})} · ${r.condition} · by ${r.returned_by||'—'}</div>`
+      :`<div class="rcard-actions">
+          <button class="ract ret-btn" onclick="openReturnModal(${r.id})">Return</button>
+          <button class="ract wa-btn" onclick="sendReminder(${r.id})">WhatsApp</button>
+          <button class="ract call-btn" onclick="if(confirm('Call ${r.name}?'))window.location.href='tel:${r.phone}'">Call</button>
+        </div>`;
+    return`<div class="rcard${od?' overdue':''}${r.returned?' returned':''}">
+      <div class="rcard-head"><div><div class="rcard-name">${r.name}</div><div class="rcard-id">${r.nysc_id}</div></div>${statusBadge}</div>
+      <div class="rcard-meta">
+        Unit: <strong>${r.serial}</strong> · Out: ${tout} · ${r.pm}
+        ${r.staff?`<br><span class="staff-pill">👤 ${r.staff}</span>`:''}
+        ${reminderBadge}
+      </div>
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+// ══ CHECKLISTS ═════════════════════════════════════════════════
+// item types: tick=simple checkbox, num=number input, temp=temp+safety, volt=voltage+safety
+// Each section ends with an issues note field
+const CL={
+  open:{
+    title:'Morning open',
+    sections:[
+      {g:'Pre-open readings', items:[
+        {t:'Battery bank temperature',           n:'Must be below 38°C before charging begins',  type:'temp', safe:'<38',      unit:'°C', label:'Batt temp'},
+        {t:'Battery voltage',                    n:'Target 25.6–27.2V · Below 24V = do not charge', type:'volt', safe:'25.6-27.2', unit:'V',  label:'Voltage'},
+        {t:'Power banks on hand',                n:'Record count — flag any discrepancy vs yesterday', type:'num',  unit:'units', label:'Unit count'},
+      ]},
+      {g:'Operational checks', items:[
+        {t:'Solar panels unobstructed',          n:'Wipe dust if needed',    type:'tick'},
+        {t:'All DC fans running',                n:'Hold hand near exhaust', type:'tick'},
+        {t:'Inverter powered on and booted',     n:'Wait 30 sec after power on', type:'tick'},
+        {t:'Charge mode: SOLAR PRIORITY',        n:'Menu > Battery > Charge Priority', type:'tick'},
+        {t:'Batch 1 (units 1–25) on charge',     n:'',                       type:'tick'},
+        {t:'Pricing sign visible',  n:'₦'+CFG.rentalPrice.toLocaleString()+' per rental clearly displayed', type:'tick'},
+      ]},
+    ],
+    issuesKey:'open_issues'
+  },
+  mid:{
+    title:'Midday check',
+    sections:[
+      {g:'Thermal readings', items:[
+        {t:'Battery bank temperature',    n:'Reduce charging if above 42°C',     type:'temp', safe:'<42', unit:'°C', label:'Batt temp'},
+        {t:'Charging cabinet temperature',n:'Stop charging if above 45°C',       type:'temp', safe:'<45', unit:'°C', label:'Cabinet'},
+        {t:'Inverter temperature',        n:'Rest inverter 30 min if above 50°C',type:'temp', safe:'<50', unit:'°C', label:'Inverter'},
+      ]},
+      {g:'Demand & revenue snapshot', items:[
+        {t:'Units currently on rental',   n:'Cross-check with Active tab',       type:'num',  unit:'units', label:'Units out'},
+        {t:'Revenue collected so far',    n:'Cash + transfers combined',         type:'num',  unit:'₦',     label:'Revenue'},
+        {t:'Units overdue (8hr+)',         n:'Call each corper immediately',      type:'num',  unit:'units', label:'Overdue'},
+      ]},
+      {g:'Thermal actions', items:[
+        {t:'Charging reduced to max 12 units',  n:'', type:'tick'},
+        {t:'Both cabinet fans confirmed running',n:'Fan stopped = call supervisor immediately', type:'tick'},
+        {t:'Kiosk vents unobstructed',          n:'', type:'tick'},
+      ]},
+    ],
+    issuesKey:'mid_issues'
+  },
+  close:{
+    title:'End of day',
+    sections:[
+      {g:'Close-of-day readings', items:[
+        {t:'Final battery temperature',     n:'Should be below 35°C at close',       type:'temp', safe:'<35', unit:'°C', label:'Batt temp'},
+        {t:'Final cabinet temperature',     n:'Should be cooling toward ambient',     type:'temp',             unit:'°C', label:'Cabinet'},
+        {t:'Units still outstanding',       n:'Not returned — NYSC ID held',          type:'num',  unit:'units', label:'Outstanding'},
+      ]},
+      {g:'Financial close', items:[
+        {t:'Cash collected',                n:'Count before securing in lockbox',     type:'num',  unit:'₦',     label:'Cash'},
+        {t:'Transfer / POS received',       n:'Screenshot all confirmations',         type:'num',  unit:'₦',     label:'Transfer'},
+      ]},
+      {g:'Security close', items:[
+        {t:'All fans left ON overnight',    n:'Never switch off — essential for cooling', type:'tick'},
+        {t:'Charging cabinet locked',       n:'Both locks — test physically',             type:'tick'},
+        {t:'Kiosk door and windows locked', n:'Test each lock physically',                type:'tick'},
+        {t:'Kiosk vents left OPEN',         n:'Never seal vents overnight',               type:'tick'},
+        {t:'Log exported and sent to supervisor', n:'',                                  type:'tick'},
+      ]},
+    ],
+    issuesKey:'close_issues'
+  }
+};
+
+let activeCheckGroup='open';
+function showChecks(group){
+  activeCheckGroup=group;
+  document.querySelectorAll('.chk-tab').forEach(b=>{
+    const g=b.id.replace('ct-','');
+    b.style.background=g===group?'var(--g400)':'var(--g800)';
+    b.style.color=g===group?'#fff':'rgba(255,255,255,.6)';
+    b.style.border=g===group?'none':'1px solid rgba(255,255,255,.15)';
+  });
+  renderCheckGroup(group);
+}
+
+function renderCheckGroup(group){
+  const el=document.getElementById('checksContent');if(!el)return;
+  const def=CL[group];if(!def)return;
+  if(!S.checkData)S.checkData={};
+  el.innerHTML='';
+
+  def.sections.forEach(sec=>{
+    const key=group+'_'+sec.g.replace(/\W/g,'_');
+    if(!S.checklists[key])S.checklists[key]=new Array(sec.items.length).fill(false);
+
+    const wrap=document.createElement('div');
+    wrap.innerHTML=`<div class="slabel">${sec.g}</div>`;
+    const card=document.createElement('div');card.className='card';
+    const ul=document.createElement('ul');ul.className='cl';
+
+    sec.items.forEach((item,i)=>{
+      const dKey=key+'_'+i;
+      const saved=S.checkData[dKey]||'';
+      const checked=S.checklists[key][i];
+      const isTick=item.type==='tick';
+      const li=document.createElement('li');
+      li.className='ci'+(checked?' ck':'');
+      if(!isTick)li.style.cursor='default';
+
+      let inputHTML='';
+      if(!isTick){
+        const iStyle=`width:76px;padding:8px 9px;border:1.5px solid var(--border);border-radius:6px;font-family:'Space Mono',monospace;font-size:15px;text-align:center;color:var(--ink);background:#fff;-webkit-appearance:none;-moz-appearance:textfield`;
+        const safeHint=item.safe?`<div style="font-size:10px;color:var(--muted);margin-top:3px;text-align:right">Safe: ${item.safe.replace('<','< ').replace('>','> ')} ${item.unit}</div>`:'';
+        inputHTML=`<div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex-shrink:0;margin-left:10px">
+          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">${item.label}</div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <input type="number" step="0.1" id="ci_${dKey}" value="${saved}" placeholder="—"
+              style="${iStyle}"
+              oninput="saveCheckData('${dKey}','${key}',${i},this.value,'${item.safe||''}','${item.unit||''}')"
+              onclick="event.stopPropagation()">
+            <span style="font-size:12px;color:var(--muted);font-weight:500;min-width:28px">${item.unit}</span>
+          </div>
+          ${safeHint}
+          <div id="cis_${dKey}" style="font-size:11px;font-weight:600;margin-top:2px;text-align:right"></div>
+        </div>`;
+      }
+
+      li.innerHTML=`
+        <div class="cb" style="flex-shrink:0;${!isTick?'margin-top:6px':''}"><span class="ctick">✓</span></div>
+        <div class="ct" style="flex:1;min-width:0">
+          <div class="cm">${item.t}</div>
+          ${item.n?`<div class="cn">${item.n}</div>`:''}
+        </div>${inputHTML}`;
+
+      if(isTick){
+        li.onclick=()=>{S.checklists[key][i]=!S.checklists[key][i];save();renderCheckGroup(group);updateDash();};
+      }else{
+        li.querySelector('.cb').addEventListener('click',e=>{
+          e.stopPropagation();
+          S.checklists[key][i]=!S.checklists[key][i];
+          save();renderCheckGroup(group);updateDash();
+        });
+        if(saved)setTimeout(()=>updateReadingStatus(dKey,saved,item.safe||'',item.unit||''),50);
+      }
+      ul.appendChild(li);
+    });
+
+    card.appendChild(ul);
+    wrap.appendChild(card);
+    el.appendChild(wrap);
+  });
+
+  // Issues & notes field
+  const issuesKey=def.issuesKey;
+  const savedIssue=S.checkData[issuesKey]||'';
+  const issueWrap=document.createElement('div');
+  issueWrap.innerHTML=`<div class="slabel">Issues & notes</div>`;
+  const issueCard=document.createElement('div');issueCard.className='card';
+  issueCard.innerHTML=`
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px;line-height:1.5">Record anything unusual — equipment behaviour, power interruptions, corper complaints, generator use, or anything your supervisor should know.</div>
+    <textarea
+      id="issues_${issuesKey}"
+      style="width:100%;min-height:90px;padding:11px 12px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:#fff;resize:vertical;line-height:1.6"
+      placeholder="No issues — or describe what happened..."
+      oninput="saveIssue('${issuesKey}',this.value)">${savedIssue}</textarea>
+    ${savedIssue?`<div style="font-size:11px;color:var(--muted);margin-top:5px">Last saved · ${savedIssue.length} chars</div>`:''}`;
+  issueWrap.appendChild(issueCard);
+  el.appendChild(issueWrap);
+
+  updateProgress();
+}
+
+function saveCheckData(dKey,checkKey,itemIdx,value,safe,unit){
+  if(!S.checkData)S.checkData={};
+  S.checkData[dKey]=value;
+  if(value&&String(value).trim()!==''){
+    if(!S.checklists[checkKey])S.checklists[checkKey]=[];
+    S.checklists[checkKey][itemIdx]=true;
+  }
+  save();updateReadingStatus(dKey,value,safe,unit);updateProgress();updateDash();
+}
+
+function saveIssue(key,value){
+  if(!S.checkData)S.checkData={};
+  S.checkData[key]=value;save();
+}
+
+function updateReadingStatus(dKey,value,safe,unit){
+  const el=document.getElementById('cis_'+dKey);
+  const inp=document.getElementById('ci_'+dKey);
+  if(!el||value===''||value==null)return;
+  const v=parseFloat(value);
+  if(isNaN(v)){el.textContent='';return;}
+  if(!safe){el.textContent='';return;}
+  let ok=true;
+  if(safe.startsWith('<'))ok=v<parseFloat(safe.slice(1));
+  else if(safe.startsWith('>'))ok=v>parseFloat(safe.slice(1));
+  else if(safe.includes('-')){const[lo,hi]=safe.split('-').map(parseFloat);ok=v>=lo&&v<=hi;}
+  el.textContent=ok?'✓ OK':'⚠ CHECK';
+  el.style.color=ok?'#15803d':'#dc2626';
+  if(inp)inp.style.borderColor=ok?'var(--g400)':'#dc2626';
+}
+
+function countAllChecks(group){
+  const def=CL[group];if(!def)return{total:0,done:0};
+  let total=0,done=0;
+  def.sections.forEach(sec=>{
+    const key=group+'_'+sec.g.replace(/\W/g,'_');
+    total+=sec.items.length;
+    done+=(S.checklists[key]||[]).filter(Boolean).length;
+  });
+  return{total,done};
+}
+
+function updateProgress(){
+  const set=(pid,bid,d,t)=>{
+    const p=document.getElementById(pid),b=document.getElementById(bid);
+    if(p)p.textContent=d+'/'+t;if(b)b.style.width=(t?d/t*100:0)+'%';
+  };
+  const op=countAllChecks('open'),mi=countAllChecks('mid'),cl=countAllChecks('close');
+  set('opProg','opBar',op.done,op.total);
+  set('midProg','midBar',mi.done,mi.total);
+  set('clProg','clBar',cl.done,cl.total);
+}
+// ══ DASHBOARD ══════════════════════════════════════════════════
+function updateDash(){
+  const total=S.rentals.length,returned=S.rentals.filter(r=>r.returned).length;
+  const out=total-returned,rev=total*CFG.rentalPrice;
+  const overdue=S.rentals.filter(r=>!r.returned&&((Date.now()-new Date(r.time_out))/3600000)>8);
+  sset('dRentals',total);
+  sset('dOut',out);
+  sset('dReturned',returned);
+  sset('dOverdue',overdue.length);
+  sset('dashRentalPrice','₦'+CFG.rentalPrice.toLocaleString());
+  sset('dashHubName',CFG.hub||'NYSC Abuja Camp');
+  document.getElementById('scOut').className='sc'+(out>10?' warn':'');
+  document.getElementById('scOverdue').className='sc'+(overdue.length?' danger':'');
+
+  // Revenue card — only visible to admin (owner)
+  const isOwner=S.currentStaffRole==='admin';
+  const revCard=document.getElementById('revenueCard');
+  if(revCard){
+    revCard.style.display=isOwner?'block':'none';
+    if(isOwner){
+      sset('dRevenue','₦'+rev.toLocaleString());
+      const target=CFG.revenueTarget||35000;
+      const pct=Math.round((rev/target)*100);
+      sset('dRevenueTarget',pct+'% of ₦'+Math.round(target/1000)+'k target');
+    }
+  }
+
+  const ind=document.getElementById('sind'),st=document.getElementById('stext');
+  if(S.hubOpen){
+    ind.className='sind on';
+    const t=new Date(S.hubOpenTime).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
+    st.textContent='Hub OPEN — opened '+t+(S.currentStaff?' · '+S.currentStaff:'');
+  }else{
+    ind.className='sind off';st.textContent='Hub not opened today';
+  }
+  if(S.lastBT!=null)setTempGauge('dBattT','dBattB',S.lastBT,45);
+  if(S.lastCT!=null)setTempGauge('dCabT','dCabB',S.lastCT,50);
+  const ap=document.getElementById('alertsPanel');let html='';
+  if(overdue.length)html+=`<div class="alert alert-r"><strong>${overdue.length} unit(s) overdue.</strong> Use Active tab to contact corpers.</div>`;
+  if(S.lastBT>42)html+=`<div class="alert alert-r"><strong>Battery ${S.lastBT}°C — above limit.</strong> Reduce charging now.</div>`;
+  const h=new Date().getHours();
+  if(h>=12&&h<15)html+=`<div class="alert alert-a"><strong>Peak heat window.</strong> Max 12 units charging.</div>`;
+  if(!CFG.url)html+=`<div class="alert alert-b"><strong>Sheets not connected.</strong> <span style="cursor:pointer;text-decoration:underline" onclick="openProfile()">Connect in Settings →</span></div>`;
+  ap.innerHTML=html;
+  updateProgress();
+}
+
+// ══ REVENUE DASHBOARD (owner only) ════════════════════════════
+function openRevenueDashboard(){
+  if(S.currentStaffRole!=='admin'){
+    showToast('⚠️ Revenue dashboard is owner-only','err');return;
+  }
+  var rev=S.rentals.length*CFG.rentalPrice;
+  var ret=S.rentals.filter(function(r){return r.returned;}).length;
+  var out=S.rentals.length-ret;
+  var target=CFG.revenueTarget||35000;
+  var pct=Math.min(100,Math.round((rev/target)*100));
+
+  // Payment split
+  var byPM={cash:0,transfer:0,pos:0};
+  S.rentals.forEach(function(r){
+    var pm=r.pm||'cash';
+    byPM[pm]=(byPM[pm]||0)+CFG.rentalPrice;
+  });
+
+  // Staff performance
+  var byStaff={};
+  S.rentals.forEach(function(r){
+    var n=r.staff||'Unknown';
+    byStaff[n]=(byStaff[n]||0)+1;
+  });
+
+  // Peak hour
+  var byHour={};
+  S.rentals.forEach(function(r){
+    var h=new Date(r.time_out).getHours();
+    byHour[h]=(byHour[h]||0)+1;
+  });
+  var peakHour=Object.keys(byHour).sort(function(a,b){return byHour[b]-byHour[a];})[0];
+
+  // Build HTML with string concatenation — no nested template literals
+  var pmRows='';
+  ['cash','transfer','pos'].forEach(function(pm){
+    var amt=byPM[pm]||0;
+    var ppct=rev>0?Math.round((amt/rev)*100):0;
+    var col=pm==='cash'?'#22883f':pm==='transfer'?'#1d4ed8':'#f59e0b';
+    pmRows+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+    pmRows+='<div style="font-size:13px;font-weight:500;color:#111827;min-width:64px;text-transform:capitalize">'+pm+'</div>';
+    pmRows+='<div style="flex:1;background:#e5e7eb;border-radius:3px;height:8px;overflow:hidden">';
+    pmRows+='<div style="height:100%;width:'+ppct+'%;background:'+col+';border-radius:3px"></div></div>';
+    pmRows+='<div style="font-size:13px;font-weight:600;font-family:\'Space Mono\',monospace;color:#111827;min-width:80px;text-align:right">&#8358;'+amt.toLocaleString()+'</div>';
+    pmRows+='</div>';
+  });
+
+  var staffRows='';
+  Object.entries(byStaff).sort(function(a,b){return b[1]-a[1];}).forEach(function(entry){
+    var name=entry[0], count=entry[1];
+    staffRows+='<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #e5e7eb">';
+    staffRows+='<div style="font-size:13px;font-weight:500;color:#111827">'+name+'</div>';
+    staffRows+='<div style="display:flex;align-items:center;gap:10px">';
+    staffRows+='<span style="font-size:12px;color:#6b7280">'+count+' rental'+(count!==1?'s':'')+'</span>';
+    staffRows+='<span style="font-family:\'Space Mono\',monospace;font-size:13px;font-weight:700;color:#145228">&#8358;'+(count*CFG.rentalPrice).toLocaleString()+'</span>';
+    staffRows+='</div></div>';
+  });
+
+  var peakStr=peakHour?('<div style="font-size:12px;color:#6b7280;margin-top:10px">Peak hour: '+peakHour+':00&#8211;'+peakHour+':59 ('+byHour[peakHour]+' rentals)</div>'):'';
+
+  var outColor=out>0?'#dc2626':'#111827';
+
+  var html='<div class="modal" style="max-height:92vh;overflow-y:auto">';
+  html+='<div class="mhandle"></div>';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">';
+  html+='<div class="mtitle" style="margin-bottom:0">Revenue dashboard</div>';
+  html+='<span class="badge br">Owner only</span></div>';
+
+  // Revenue vs target
+  html+='<div style="background:#edfbf1;border:1px solid #d4f4dd;border-radius:14px;padding:16px;margin-bottom:14px">';
+  html+='<div style="font-size:11px;color:#0f6e56;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:600">Today\'s revenue</div>';
+  html+='<div style="font-family:\'Space Mono\',monospace;font-size:36px;font-weight:700;color:#145228;margin-bottom:10px">&#8358;'+rev.toLocaleString()+'</div>';
+  html+='<div style="background:rgba(0,0,0,.1);border-radius:4px;height:8px;overflow:hidden;margin-bottom:6px">';
+  html+='<div style="height:100%;width:'+pct+'%;background:#22883f;border-radius:4px;transition:width .5s"></div></div>';
+  html+='<div style="display:flex;justify-content:space-between;font-size:12px;color:#0f6e56">';
+  html+='<span>'+pct+'% of daily target</span><span>Target: &#8358;'+target.toLocaleString()+'</span></div></div>';
+
+  // Key metrics
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">';
+  html+='<div style="background:#f9fafb;border-radius:8px;padding:12px;text-align:center;border:1px solid #e5e7eb">';
+  html+='<div style="font-size:22px;font-weight:700;font-family:\'Space Mono\',monospace;color:#111827">'+S.rentals.length+'</div>';
+  html+='<div style="font-size:11px;color:#6b7280;margin-top:3px">Rentals</div></div>';
+  html+='<div style="background:#f9fafb;border-radius:8px;padding:12px;text-align:center;border:1px solid #e5e7eb">';
+  html+='<div style="font-size:22px;font-weight:700;font-family:\'Space Mono\',monospace;color:#111827">&#8358;'+CFG.rentalPrice.toLocaleString()+'</div>';
+  html+='<div style="font-size:11px;color:#6b7280;margin-top:3px">Rate</div></div>';
+  html+='<div style="background:#f9fafb;border-radius:8px;padding:12px;text-align:center;border:1px solid #e5e7eb">';
+  html+='<div style="font-size:22px;font-weight:700;font-family:\'Space Mono\',monospace;color:'+outColor+'">'+out+'</div>';
+  html+='<div style="font-size:11px;color:#6b7280;margin-top:3px">Still out</div></div></div>';
+
+  // Payment split
+  html+='<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin-bottom:14px">';
+  html+='<div style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Payment split</div>';
+  html+=pmRows+'</div>';
+
+  // Staff performance
+  html+='<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin-bottom:14px">';
+  html+='<div style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Staff performance</div>';
+  html+=staffRows+peakStr+'</div>';
+
+  // Daily target setting
+  html+='<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:14px">';
+  html+='<div style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Daily target</div>';
+  html+='<div style="display:flex;gap:8px;align-items:center">';
+  html+='<span style="font-size:14px;color:#6b7280">&#8358;</span>';
+  html+='<input type="number" id="targetInput" value="'+target+'" style="flex:1;padding:9px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:\'Space Mono\',monospace;font-size:16px;color:#111827">';
+  html+='<button onclick="saveTarget()" style="background:#34a854;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:600;cursor:pointer">Save</button>';
+  html+='</div></div>';
+  html+='<button class="btn btn-o" onclick="this.closest(\'.mo\').remove()">Close</button>';
+  html+='</div>';
+
+  var mo=document.createElement('div');
+  mo.className='mo open';
+  mo.innerHTML=html;
+  document.body.appendChild(mo);
+}
+
+function saveTarget(){
+  var v=parseInt(document.getElementById('targetInput').value);
+  if(!v||v<1000){showToast('⚠️ Enter a valid target amount','err');return;}
+  CFG.revenueTarget=v;saveCfg();
+  document.querySelector('.mo:last-child').remove();
+  openRevenueDashboard();
+  showToast('✓ Daily target updated to &#8358;'+v.toLocaleString());
+}
+
+
+// ══ SETTINGS ═══════════════════════════════════════════════════
+function saveSettings(){
+  if(!settingsUnlocked){showToast('⚠️ Unlock settings first');return;}
+  const rental=parseInt(document.getElementById('cfg_rental').value);
+  if(!rental||rental<100){showToast('⚠️ Rental price must be at least ₦100');return;}
+  CFG.rentalPrice=rental;
+  CFG.closeHour=parseFloat(document.getElementById('cfg_close').value);
+  CFG.fleet=parseInt(document.getElementById('cfg_fleet').value);
+  CFG.hub=document.getElementById('cfg_hub').value.trim()||'NYSC Abuja Camp';
+  CFG.url=document.getElementById('cfg_url').value.trim();
+  saveCfg();
+  lockSettings();
+  updateDash();
+  showToast('✓ Settings saved and locked');
+}
+
+// ══ LOG ═════════════════════════════════════════════════════════
+function renderLog(){
+  const isOwner=S.currentStaffRole==='admin';
+  const total=S.rentals.length,ret=S.rentals.filter(r=>r.returned).length,rev=total*CFG.rentalPrice;
+  document.getElementById('logSummary').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><div style="font-size:11px;color:var(--muted)">Rentals</div><div style="font-size:20px;font-weight:700;font-family:'Space Mono',monospace">${total}</div></div>
+      <div><div style="font-size:11px;color:var(--muted)">Returned</div><div style="font-size:20px;font-weight:700;font-family:'Space Mono',monospace">${ret}</div></div>
+      <div><div style="font-size:11px;color:var(--muted)">Outstanding</div><div style="font-size:20px;font-weight:700;font-family:'Space Mono',monospace">${total-ret}</div></div>
+      ${isOwner?`<div style="background:var(--g50);border:1px solid var(--g100);border-radius:var(--rs);padding:8px;text-align:center"><div style="font-size:11px;color:var(--g700);font-weight:600">Revenue</div><div style="font-size:20px;font-weight:700;font-family:'Space Mono',monospace;color:var(--g700)">₦${rev.toLocaleString()}</div></div>`:'<div></div>'}
+    </div>
+    <div style="font-size:12px;color:var(--muted)">Sync: ${CFG.url?'Sheets connected':'Local only'} &nbsp;·&nbsp; Staff: ${S.currentStaff||'—'}</div>`;
+  const el=document.getElementById('logTx');
+  if(!S.rentals.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>No transactions yet</div></div>';return;}
+  el.innerHTML=`<table class="ltable">
+    <thead><tr><th>Corper</th><th>Unit</th><th>Staff</th><th>Out</th><th>Status</th></tr></thead>
+    <tbody>${S.rentals.map(r=>{
+      const tout=new Date(r.time_out).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
+      const sc=r.returned?'bg':((Date.now()-new Date(r.time_out))/3600000>8?'br':'ba');
+      const sl=r.returned?'Returned':((Date.now()-new Date(r.time_out))/3600000>8?'Overdue':'Out');
+      return`<tr><td>${r.name}<br><span style="font-size:10px;color:var(--muted)">${r.nysc_id}</span></td>
+        <td style="font-family:'Space Mono',monospace">${r.serial}</td>
+        <td style="font-size:11px;color:var(--muted)">${r.staff||'—'}</td>
+        <td>${tout}</td>
+        <td><span class="badge ${sc}">${sl}</span></td></tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+function exportLog(){
+  const isOwner=S.currentStaffRole==='admin';
+  const rev=S.rentals.length*CFG.rentalPrice;
+  const lines=[
+    `HESPEK HUB LOG · ${CFG.hub||'NYSC Camp'} · ${S.date}`,
+    `Staff on duty: ${S.currentStaff||'—'}`,
+    `Rentals: ${S.rentals.length} · Returned: ${S.rentals.filter(r=>r.returned).length}${isOwner?' · Revenue: ₦'+rev.toLocaleString():''}`,
+    `Rental price: ₦${CFG.rentalPrice.toLocaleString()}`,`═══════════`,
+    ...S.rentals.map(r=>`${r.name} | ${r.nysc_id} | ${r.serial} | Staff:${r.staff||'—'} | Out:${new Date(r.time_out).toLocaleTimeString('en-NG')} | ${r.returned?'RETURNED '+new Date(r.time_in).toLocaleTimeString('en-NG')+' by '+(r.returned_by||'—'):'OUTSTANDING'}`)
+  ].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lines],{type:'text/plain'}));
+  a.download=`hespek_${S.date}.txt`;a.click();
+  showToast('✓ Log exported');
+}
+
+function clearDay(){
+  localStorage.removeItem(SK);location.reload();
+}
+
+// ══ UNIFIED SCANNER SYSTEM ═════════════════════════════════════
+// scanMode: 'id' = NYSC ID scan (step 1), 'pb' = power bank QR (step 3)
+let codeReader=null, scanMode='id';
+
+function openScannerID(){
+  scanMode='id';
+  document.getElementById('scanTitle').textContent='Scan NYSC ID barcode';
+  document.getElementById('scanSub').textContent='Hold the barcode on the ID card steady inside the frame';
+  document.getElementById('scanManualBtn').style.display='block';
+  document.getElementById('scanResult').textContent='';
+  startScanner();
+}
+
+function openScannerPB(){
+  scanMode='pb';
+  document.getElementById('scanTitle').textContent='Scan power bank QR code';
+  document.getElementById('scanSub').textContent='Point camera at the QR label on the power bank (e.g. HK-042)';
+  document.getElementById('scanManualBtn').style.display='none';
+  document.getElementById('scanResult').textContent='';
+  startScanner();
+}
+
+// Legacy alias — step 1 scan box calls this
+function openScanner(){ openScannerID(); }
+
+async function startScanner(){
+  document.getElementById('scanOverlay').classList.add('open');
+  try{
+    if(typeof ZXingBrowser==='undefined'){closeScanner(true);return;}
+    codeReader=new ZXingBrowser.BrowserMultiFormatReader();
+    await codeReader.decodeFromVideoDevice(null,document.getElementById('scanner-video'),(result,err)=>{
+      if(!result)return;
+      const text=result.getText().trim();
+      if(scanMode==='id') handleIDScan(text);
+      else handlePBScan(text);
+    });
+  }catch(e){
+    console.warn('Scanner error:',e);
+    if(scanMode==='id')closeScanner(true);
+    else closeScanner(false);
+  }
+}
+
+function handleIDScan(text){
+  // Flash result
+  const res=document.getElementById('scanResult');
+  res.textContent='✓ '+text;
+  setTimeout(()=>{
+    document.getElementById('s1_id').value=text;
+    closeScanner(false);
+    showToast('✓ NYSC ID scanned: '+text);
+  },400);
+}
+
+function handlePBScan(text){
+  // Accept formats: HK-001, HK001, PB-001, PB001, or plain number
+  const res=document.getElementById('scanResult');
+  res.textContent='Reading: '+text;
+
+  // Extract slot number from QR text
+  let slotNum=null;
+
+  // Match HK-042, PB-042, HK042, PB042
+  const prefixMatch=text.match(/^(?:HK|PB)-?(\d+)$/i);
+  if(prefixMatch) slotNum=parseInt(prefixMatch[1]);
+
+  // Plain number e.g. "42" or "042"
+  const numMatch=text.match(/^\d+$/);
+  if(!slotNum&&numMatch) slotNum=parseInt(text);
+
+  if(!slotNum||slotNum<1||slotNum>CFG.fleet){
+    res.textContent='⚠ Not recognised: '+text;
+    res.style.color='#f87171';
+    setTimeout(()=>{res.textContent='';res.style.color='var(--g300)';},1800);
+    return;
+  }
+
+  // Check slot availability
+  const st=slotStatus(slotNum);
+  if(st==='out'){
+    res.textContent='⚠ Unit '+slotNum+' already out on rental';
+    res.style.color='#f59e0b';
+    setTimeout(()=>{res.textContent='';res.style.color='var(--g300)';},2000);
+    return;
+  }
+  if(st==='cooldown'){
+    res.textContent='⚠ Unit '+slotNum+' in cool-down — not ready';
+    res.style.color='#a855f7';
+    setTimeout(()=>{res.textContent='';res.style.color='var(--g300)';},2000);
+    return;
+  }
+
+  // Valid — flash success and select
+  res.textContent='✓ HK-'+String(slotNum).padStart(3,'0')+' selected';
+  res.style.color='var(--g300)';
+  setTimeout(()=>{
+    closeScanner(false);
+    selectSlot(slotNum);
+    showToast('✓ Unit HK-'+String(slotNum).padStart(3,'0')+' selected via QR scan');
+  },500);
+}
+
+function closeScannerManual(){
+  stopCamera();
+  document.getElementById('scanOverlay').classList.remove('open');
+  if(scanMode==='id')setTimeout(()=>document.getElementById('s1_id').focus(),100);
+}
+
+function closeScanner(manual){
+  stopCamera();
+  document.getElementById('scanOverlay').classList.remove('open');
+  if(manual&&scanMode==='id')setTimeout(()=>document.getElementById('s1_id').focus(),100);
+}
+
+function stopCamera(){
+  if(codeReader){try{codeReader.reset();}catch(e){}codeReader=null;}
+  const video=document.getElementById('scanner-video');
+  if(video&&video.srcObject){
+    video.srcObject.getTracks().forEach(t=>t.stop());
+    video.srcObject=null;
+  }
+}
+
+// ══ PROFILE MODAL ══════════════════════════════════════════════
+function openProfile(){
+  const name=S.currentStaff||'Guest';
+  const role=S.currentStaffRole||'staff';
+  const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('profileAvatar').textContent=initials;
+  document.getElementById('profileName').textContent=name;
+  // Role badge
+  const roleColor=role==='admin'?'br':role==='supervisor'?'bb':'bg';
+  document.getElementById('profileRoleBadge').innerHTML=`<span class="badge ${roleColor}">${role}</span>`;
+  // Shift info
+  const openTime=S.hubOpenTime?new Date(S.hubOpenTime).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}):'—';
+  document.getElementById('profileShiftInfo').textContent='Shift started: '+openTime;
+  // Declare canSettings early — used in both revenue and settings button blocks
+  const canSettings=['admin','supervisor'].includes(role);
+  // My stats — only rentals issued by this staff member
+  const myRentals=S.rentals.filter(r=>r.staff===name);
+  const myReturned=myRentals.filter(r=>r.returned).length;
+  sset('profileRentals',myRentals.length);
+  sset('profileReturned',myReturned);
+  // Revenue only shown to admin/supervisor
+  const revEl=document.getElementById('profileRevenue');
+  const revParent=revEl?revEl.parentElement:null;
+  if(revParent){
+    if(canSettings){
+      const myRevenue=myRentals.length*CFG.rentalPrice;
+      revEl.textContent='₦'+Math.round(myRevenue/1000)+'k';
+      revParent.style.display='block';
+    }else{
+      revParent.style.display='none';
+    }
+  }
+  // Show/hide settings button based on role
+  const settingsBtn=document.getElementById('profileSettingsBtn');
+  if(settingsBtn){
+    settingsBtn.style.opacity=canSettings?'1':'0.35';
+    settingsBtn.onclick=canSettings
+      ?()=>{closeModal('profileModal');requirePIN('settings',()=>goTab('settings'));}
+      :()=>showToast('⚠️ Only Admin or Supervisor can access Settings','err');
+  }
+  openModal('profileModal');
+}
+
+// ══ TABS ════════════════════════════════════════════════════════
+const TABS=['dash','rent','active','checks','log','settings'];
+function goTab(tab){
+  TABS.forEach(t=>{
+    document.getElementById('page-'+t)?.classList.toggle('active',t===tab);
+  });
+  // Update bottom nav — profile btn doesn't map to a page
+  ['dash','rent','active','checks','log'].forEach(t=>{
+    document.getElementById('bn-'+t)?.classList.toggle('active',t===tab);
+  });
+  document.getElementById('bn-profile')?.classList.remove('active');
+  if(tab==='active')renderActiveRentals();
+  if(tab==='log')renderLog();
+  if(tab==='dash')updateDash();
+  if(tab==='checks')renderCheckGroup(activeCheckGroup);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ══ HELPERS ═════════════════════════════════════════════════════
+function sset(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function openModal(id){document.getElementById(id)?.classList.add('open');}
+function closeModal(id){document.getElementById(id)?.classList.remove('open');}
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(type==='err'?' err':'');
+  setTimeout(()=>t.className='toast',2800);
+}
+function tick(){
+  const now=new Date();
+  sset('hdrDate',now.toLocaleDateString('en-NG',{weekday:'short',day:'numeric',month:'short'}));
+  sset('stime',now.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}));
+}
+
+// ══ INIT ════════════════════════════════════════════════════════
+function init(){
+  updateStaffUI();
+  renderCheckGroup('open');showChecks('open');
+  updateDash();renderActiveRentals();renderLog();tick();
+  // Show staff selector if no staff selected yet today
+  if(!S.currentStaff)setTimeout(showStaffSelector,400);
+  setInterval(tick,15000);
+  setInterval(()=>{updateDash();renderActiveRentals();checkAutoReminders();},60000);
+  checkAutoReminders();
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
